@@ -1,0 +1,217 @@
+Chunker stats
+=============
+
+20180124 - debug build no optimizations
+
+Initial run generating full run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.29513 sec (295.13 ms)
+INFO: LightingTime : 0.08726 sec (87.26 ms)
+INFO: BuildTime    : 2.58472 sec (2584.72 ms)
+INFO: OptimizeTime : 2.31091 sec (2310.91 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+Moving ahead one chunk:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.02392 sec (23.92 ms)
+INFO: LightingTime : 0.03359 sec (33.59 ms)
+INFO: BuildTime    : 0.19511 sec (195.11 ms)
+INFO: OptimizeTime : 0.34649 sec (346.49 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+
+optimized build: -O3 -mwindows -funroll-loops -fomit-frame-pointer -ftree-loop-distribution -ftree-vectorize
+
+Full run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.07240 sec (72.40 ms)
+INFO: LightingTime : 0.03105 sec (31.05 ms)
+INFO: BuildTime    : 0.21079 sec (210.79 ms)
+INFO: OptimizeTime : 0.20730 sec (207.30 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+Moving ahead one chunk:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.00568 sec (5.68 ms)
+INFO: LightingTime : 0.01782 sec (17.82 ms)
+INFO: BuildTime    : 0.01673 sec (16.73 ms)
+INFO: OptimizeTime : 0.03037 sec (30.37 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+20180125 - optimized build
+
+Full run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.07527 sec (75.27 ms)
+INFO: LightingTime : 0.02651 sec (26.51 ms)
+INFO: BuildTime    : 0.20693 sec (206.93 ms)
+INFO: OptimizeTime : 0.18695 sec (186.95 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+Partial run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.00542 sec (5.42 ms)
+INFO: LightingTime : 0.01859 sec (18.59 ms)
+INFO: BuildTime    : 0.01633 sec (16.33 ms)
+INFO: OptimizeTime : 0.02783 sec (27.83 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+========================================================================================================================
+20180127 - Threaded mesher debug build - benchmarks have decreased noticeably for meshing and optimize time because of
+the added synchronization overhead
+
+Full run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.23110 sec (231.10 ms)
+INFO: LightingTime : 0.04990 sec (49.90 ms)
+INFO: MeshingTime  : 2.77055 sec (2770.55 ms)
+INFO: OptimizeTime : 2.55955 sec (2559.55 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+Partial run:
+
+ -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.02116 sec (21.16 ms)
+INFO: LightingTime : 0.00367 sec (3.67 ms)
+INFO: MeshingTime  : 0.23171 sec (231.71 ms)
+INFO: OptimizeTime : 0.38986 sec (389.86 ms)
+INFO: UpdateTime   : 0.08582 sec (85.82 ms)
+INFO: -----------------------------------------------
+
+Optimized build
+===============
+
+Full run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.05292 sec (52.92 ms)
+INFO: LightingTime : 0.01700 sec (17.00 ms)
+INFO: MeshingTime  : 0.18909 sec (189.09 ms)
+INFO: OptimizeTime : 0.18261 sec (182.61 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+Partial run:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.00378 sec (3.78 ms)
+INFO: LightingTime : 0.00078 sec (0.78 ms)
+INFO: MeshingTime  : 0.01302 sec (13.02 ms)
+INFO: OptimizeTime : 0.02857 sec (28.57 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+
+Optimized 32 radius
+========================================================================================================================
+
+Old version
+
+Full:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.74023 sec (740.23 ms)
+INFO: LightingTime : 0.31465 sec (314.65 ms)
+INFO: MeshingTime  : 4.97593 sec (4975.93 ms)
+INFO: OptimizeTime : 9.08466 sec (9084.66 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+Partial:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.00807 sec (8.07 ms)
+INFO: LightingTime : 0.00552 sec (5.52 ms)
+INFO: MeshingTime  : 0.10418 sec (104.18 ms)
+INFO: OptimizeTime : 0.22543 sec (225.43 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+array textures
+
+no uniforms:
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.68137 sec (681.37 ms)
+INFO: LightingTime : 0.26941 sec (269.41 ms)
+INFO: MeshingTime  : 2.68440 sec (2684.40 ms)
+INFO: OptimizeTime : 3.04234 sec (3042.34 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+All:
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.66713 sec (667.13 ms)
+INFO: LightingTime : 0.23076 sec (230.76 ms)
+INFO: MeshingTime  : 5.52526 sec (5525.26 ms)
+INFO: OptimizeTime : 10.05696 sec (10056.96 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+more inlining:
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.63368 sec (633.68 ms)
+INFO: LightingTime : 0.22963 sec (229.63 ms)
+INFO: MeshingTime  : 5.77452 sec (5774.52 ms)
+INFO: OptimizeTime : 9.36711 sec (9367.11 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+fewer uniforms:
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.69242 sec (692.42 ms)
+INFO: LightingTime : 0.24749 sec (247.49 ms)
+INFO: MeshingTime  : 4.94992 sec (4949.92 ms)
+INFO: OptimizeTime : 9.00149 sec (9001.49 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+// after eliminating uniform lookups each block batch (32 radius, optimized, full run)
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.71151 sec (711.51 ms)
+INFO: LightingTime : 0.28679 sec (286.79 ms)
+INFO: MeshingTime  : 2.69130 sec (2691.30 ms)
+INFO: OptimizeTime : 3.15456 sec (3154.56 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+// from static
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.86826 sec (868.26 ms)
+INFO: LightingTime : 0.24258 sec (242.58 ms)
+INFO: MeshingTime  : 2.68353 sec (2683.53 ms)
+INFO: OptimizeTime : 3.37339 sec (3373.39 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
+
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.64253 sec (642.53 ms)
+INFO: LightingTime : 0.23702 sec (237.02 ms)
+INFO: MeshingTime  : 2.45252 sec (2452.52 ms)
+INFO: OptimizeTime : 3.03370 sec (3033.70 ms)
+INFO: UpdateTime   : 0 sec (0 ms)
+INFO: -----------------------------------------------
+
+// no locking between threads (unstable)
+INFO: -=* ChunkMetrics *=----------------------------
+INFO: SetupTime    : 0.67493 sec (674.93 ms)
+INFO: LightingTime : 0.30603 sec (306.03 ms)
+INFO: MeshingTime  : 2.58459 sec (2584.59 ms)
+INFO: OptimizeTime : 2.29496 sec (2294.96 ms)
+INFO: UpdateTime   : 0.00000 sec (0.00 ms)
+INFO: -----------------------------------------------
