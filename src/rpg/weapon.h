@@ -20,9 +20,14 @@ typedef struct {
     i32             range;
 } WeaponTemplate;
 
-void WeaponTemplate_Init(WeaponTemplate *weaponTemplate, const char* name, i32 cost,
+typedef struct {
+    WeaponTemplate*  template;
+    i8              condition;  // Broken AF -127 <-> 127 Mint condition
+    // here you would add stuff affecting a particular piece of armor, like enchantments
+} Weapon;
+
+void    WeaponTemplate_Init(WeaponTemplate *weaponTemplate, const char* name, i32 cost,
                          WeaponSize size, i32 weight, const char* damage, i32 range,
                          WeaponCategory cat);
-
 
 #endif //GAME_WEAPON_H

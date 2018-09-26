@@ -3,6 +3,7 @@
 //
 
 #include <string.h>
+#include <malloc.h>
 #include "monster.h"
 
 void MonsterTemplate_Init(MonsterTemplate *template, const char *name, i32 ac, const char *attacks,
@@ -10,13 +11,20 @@ void MonsterTemplate_Init(MonsterTemplate *template, const char *name, i32 ac, c
                           const char *factiontpl, const char *aicls, const char *grammarcls)
 {
     memset(template, 0, sizeof(MonsterTemplate));
-    strncpy(template->name, name, sizeof(template->name));
+    if(name)
+        strncpy(template->name, name, sizeof(template->name));
     template->AC = ac;
-    strncpy(template->attacks, attacks, sizeof(template->attacks));
-    strncpy(template->damageDices, dmgdices, sizeof(template->damageDices));
+    if(attacks)
+        strncpy(template->attacks, attacks, sizeof(template->attacks));
+    if(dmgdices)
+        strncpy(template->damageDices, dmgdices, sizeof(template->damageDices));
     template->XP = xp;
-    strncpy(template->weaponTemplate, weapontpl, sizeof(template->weaponTemplate));
-    strncpy(template->factionTemplate, factiontpl, sizeof(template->factionTemplate));
-    strncpy(template->aiClass, aicls, sizeof(template->aiClass));
-    strncpy(template->grammarClass, grammarcls, sizeof(template->grammarClass));
+    if(weapontpl)
+        strncpy(template->weaponTemplate, weapontpl, sizeof(template->weaponTemplate));
+    if(factiontpl)
+        strncpy(template->factionTemplate, factiontpl, sizeof(template->factionTemplate));
+    if(aicls)
+        strncpy(template->aiClass, aicls, sizeof(template->aiClass));
+    if(grammarcls)
+        strncpy(template->grammarClass, grammarcls, sizeof(template->grammarClass));
 }

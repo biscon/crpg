@@ -3,7 +3,9 @@
 //
 
 #include <string.h>
+#include <malloc.h>
 #include "weapon.h"
+#include "rpg_defs.h"
 
 void
 WeaponTemplate_Init(WeaponTemplate *weaponTemplate, const char *name, i32 cost, WeaponSize size,

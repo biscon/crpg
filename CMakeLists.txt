@@ -42,7 +42,7 @@ set(CGLM_SOURCE_FILES src/util/cglm/affine.c
         src/util/cglm/vec3.c
         src/util/cglm/vec4.c)
 set(UTIL_SOURCE_FILES src/util/vector.c src/include/vector.h src/include/hashmap.h src/util/hashmap.c src/util/string_util.c src/util/string_util.h)
-set(GAME_SOURCE_FILES src/include/defs.h src/main.c src/glad/glad.c src/rpg/dice.c src/rpg/ability_score.c src/rpg/ability_score.h src/rpg/entity.c src/rpg/entity.h src/rpg/entity_class.c src/rpg/entity_class.h src/rpg/rpg.c src/rpg/rpg.h src/rpg/armor.c src/rpg/armor.h src/rpg/weapon.c src/rpg/weapon.h src/rpg/monster.c src/rpg/monster.h)
+set(GAME_SOURCE_FILES src/include/defs.h src/main.c src/glad/glad.c src/rpg/dice.c src/rpg/ability_score.c src/rpg/ability_score.h src/rpg/entity.c src/rpg/entity.h src/rpg/entity_class.c src/rpg/entity_class.h src/rpg/rpg.c src/rpg/rpg.h src/rpg/armor.c src/rpg/armor.h src/rpg/weapon.c src/rpg/weapon.h src/rpg/monster.c src/rpg/monster.h src/rpg/rpg_defs.h src/rpg/rpg_log.c src/rpg/rpg_log.h)
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 
 target_link_libraries(game m ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} ${SDL2_LIBRARY})

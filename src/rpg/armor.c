@@ -3,7 +3,9 @@
 //
 
 #include <string.h>
+#include <malloc.h>
 #include "armor.h"
+#include "rpg_defs.h"
 
 void ArmorTemplate_Init(ArmorTemplate *armorTemplate, ArmorType type, const char *name, i32 ac,
                         i32 weight, i32 cost)
@@ -15,3 +17,4 @@ void ArmorTemplate_Init(ArmorTemplate *armorTemplate, ArmorType type, const char
     armorTemplate->weight = weight;
     armorTemplate->cost = cost;
 }
+

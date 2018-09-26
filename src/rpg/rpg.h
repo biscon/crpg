@@ -9,11 +9,7 @@
 #include "armor.h"
 #include "weapon.h"
 #include "monster.h"
-
-#define RPG_MAX_CLASSES             128
-#define RPG_MAX_ARMOR_TEMPLATES     128
-#define RPG_MAX_WEAPON_TEMPLATES    128
-#define RPG_MAX_MONSTER_TEMPLATES   128
+#include "rpg_defs.h"
 
 typedef struct {
     EntityClass*        entityClasses[RPG_MAX_CLASSES];
@@ -27,12 +23,23 @@ typedef struct {
 } RPGContext;
 
 
-void                RPG_Init();
-void                RPG_InitContext(RPGContext *context);
-void                RPG_ShutdownContext(RPGContext *context);
-EntityClass*        RPG_GetEntityClass(RPGContext *context, const char* classname);
-ArmorTemplate*      RPG_GetArmorTemplate(RPGContext *context, const char* templatename);
-MonsterTemplate*    RPG_GetMonsterTemplate(RPGContext *context, const char* templatename);
+void                    RPG_Init();
+void                    RPG_InitContext(RPGContext *context);
+void                    RPG_ShutdownContext(RPGContext *context);
+EntityClass*            RPG_GetEntityClass(RPGContext *context, const char* classname);
 
+// Monsters
+MonsterTemplate*        RPG_GetMonsterTemplate(RPGContext *context, const char* templatename);
+Monster*                RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level);
+void                    RPG_DestroyMonster(Monster *monster);
 
+// Armor
+ArmorTemplate*          RPG_GetArmorTemplate(RPGContext *context, const char* templatename);
+Armor*                  RPG_CreateArmorFromTemplate(RPGContext *context, ArmorTemplate *template);
+void                    RPG_DestroyArmor(Armor *armor);
+
+// Weapons
+WeaponTemplate*         RPG_GetWeaponTemplate(RPGContext *context, const char* templatename);
+Weapon*                 RPG_CreateWeaponFromTemplate(RPGContext *context, WeaponTemplate *template);
+void                    RPG_DestroyWeapon(Weapon *weapon);
 #endif //GAME_RPG_H
