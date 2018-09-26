@@ -16,6 +16,7 @@
  */
 internal void AddArmorTemplate(RPGContext* context, ArmorType type, const char *name, i32 ac, i32 weight, i32 cost)
 {
+    RPG_LOG("Loading armor template %s\n", name);
     ArmorTemplate *template = calloc(1, sizeof(ArmorTemplate));
     ArmorTemplate_Init(template, type, name, ac, weight, cost);
     context->armorTemplates[context->armorTemplateCount] = template;
@@ -25,6 +26,7 @@ internal void AddArmorTemplate(RPGContext* context, ArmorType type, const char *
 internal void CreateArmorTemplates(RPGContext* context)
 {
     #include "templates/armor_templates.inc"
+    RPG_LOG("Loaded %d armor templates.\n", context->armorTemplateCount);
 }
 
 /*
@@ -34,6 +36,7 @@ internal void AddWeaponTemplate(RPGContext* context, const char* name, i32 cost,
                                 WeaponSize size, i32 weight, const char* damage, i32 range,
                                 WeaponCategory cat)
 {
+    RPG_LOG("Loading weapon template %s\n", name);
     WeaponTemplate *template = calloc(1, sizeof(WeaponTemplate));
     WeaponTemplate_Init(template, name, cost, size, weight, damage, range, cat);
     context->weaponTemplates[context->weaponTemplateCount] = template;
@@ -43,6 +46,7 @@ internal void AddWeaponTemplate(RPGContext* context, const char* name, i32 cost,
 internal void CreateWeaponTemplates(RPGContext* context)
 {
     #include "templates/weapon_templates.inc"
+    RPG_LOG("Loaded %d weapon templates.\n", context->weaponTemplateCount);
 }
 
 /*
@@ -53,6 +57,7 @@ internal void AddMonsterTemplate(RPGContext* context, const char *name, i32 ac,
                                  const char *weapontpl, const char *factiontpl, const char *aicls,
                                  const char *grammarcls)
 {
+    RPG_LOG("Loading monster template %s\n", name);
     MonsterTemplate *template = calloc(1, sizeof(MonsterTemplate));
     MonsterTemplate_Init(template, name, ac, attacks, dmgdices, xp, weapontpl, factiontpl, aicls, grammarcls);
     context->monsterTemplates[context->monsterTemplateCount] = template;
@@ -62,6 +67,7 @@ internal void AddMonsterTemplate(RPGContext* context, const char *name, i32 ac,
 internal void CreateMonsterTemplates(RPGContext* context)
 {
     #include "templates/monster_templates.inc"
+    RPG_LOG("Loaded %d monster templates.\n", context->monsterTemplateCount);
 }
 
 
@@ -83,6 +89,7 @@ void RPG_InitContext(RPGContext *context)
 
 void RPG_ShutdownContext(RPGContext *context)
 {
+    RPG_LOG("Shutting down context\n");
     for(i32 i = 0; i < context->entityClassCount; ++i) {
         free(context->entityClasses[i]);
     }
