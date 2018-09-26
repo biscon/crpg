@@ -3,10 +3,10 @@
 //
 
 #include "dice.h"
+#include "rpg_log.h"
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include <SDL_log.h>
 
 void Dice_Init()
 {
@@ -19,16 +19,15 @@ i32 Dice_Roll(const char *string) {
     i32 pips = 1;
     i32 adds = 0;
     i32 sum = 0;
-    i32 res = sscanf(string, "%dd%d+%d", &no_rolls, &pips, &adds);
-    SDL_Log("Matched %d tokens, no_rolls = %d, pips = %d, adds = %d", res, no_rolls, pips, adds);
+    sscanf(string, "%dd%d+%d", &no_rolls, &pips, &adds);
 
     for(i32 i = 0; i < no_rolls; ++i)
     {
         i32 roll = (rand() % pips)+1;
-        SDL_Log("Rolled %d sided dice result: %d", pips, roll);
         sum += roll;
     }
     sum += adds;
+    RPG_LOG("Rolling dice (no_rolls = %d, pips = %d, adds = %d) = %d\n", no_rolls, pips, adds, sum);
     return sum;
 }
 
@@ -42,6 +41,5 @@ i32 Dice_Roll4D6DropLowest() {
     min_ab = a < b ? a : b;
     min_cd = c < d ? c : d;
     min = min_ab < min_cd ? min_ab : min_cd;
-    printf("%d", min);
     return sum-min;
 }
