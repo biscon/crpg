@@ -23,7 +23,7 @@ typedef struct {
     // here you would add stuff affecting a particular piece of armor, like enchantments
 } Armor;
 
-void    ArmorTemplate_Init(ArmorTemplate *armorTemplate, ArmorType type, const char* name, i32 ac,
-                        i32 weight, i32 cost);
+void                ArmorTemplate_Init(ArmorTemplate *armorTemplate, ArmorType type,
+                                       const char* name, i32 ac, i32 weight, i32 cost);
 
 #endif //GAME_ARMOR_H

@@ -9,12 +9,12 @@
 
 typedef struct
 {
-    i32 STR;
-    i32 INT;
-    i32 WIS;
-    i32 DEX;
-    i32 CON;
-    i32 CHA;
+        i32 STR;
+        i32 INT;
+        i32 WIS;
+        i32 DEX;
+        i32 CON;
+        i32 CHA;
 } AbilityScore;
 
 void    AbilityScore_Roll(AbilityScore *score);

@@ -26,7 +26,7 @@ typedef struct {
     Weapon*             weapon;
 } Monster;
 
-void MonsterTemplate_Init(MonsterTemplate* template, const char *name, i32 ac,
+void                    MonsterTemplate_Init(MonsterTemplate* template, const char *name, i32 ac,
                           const char *attacks, const char *dmgdices, i32 xp, const char *weapontpl,
                           const char *factiontpl, const char *aicls, const char *grammarcls);
 

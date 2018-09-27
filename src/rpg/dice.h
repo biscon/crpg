@@ -6,8 +6,8 @@
 
 #include <defs.h>
 
-void Dice_Init();
-i32 Dice_Roll(const char *string);
-i32 Dice_Roll4D6DropLowest();
+void        Dice_Init();
+i32         Dice_Roll(const char *string);
+i32         Dice_Roll4D6DropLowest();
 
 #endif //GAME_DICE_H
