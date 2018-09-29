@@ -225,6 +225,9 @@ int main()
     assert(entityClass != NULL);
     Entity_Init(&entity, ET_CHARACTER, 1, "Theodor", entityClass);
 
+    Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Swearwolf"), 1);
+
+
     while(!ShouldQuit)
     {
         oldTime = platformGetTime();
@@ -252,6 +255,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         SDL_GL_SwapWindow(Window);
     }
+    RPG_DestroyEntity(monster);
 
     RPG_ShutdownContext(&rpgContext);
 

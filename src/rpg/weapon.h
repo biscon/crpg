@@ -30,4 +30,7 @@ void                WeaponTemplate_Init(WeaponTemplate *weaponTemplate, const ch
                          WeaponSize size, i32 weight, const char* damage, i32 range,
                          WeaponCategory cat);
 
+Weapon*             Weapon_CreateFromTemplate(WeaponTemplate *template);
+void                Weapon_Destroy(Weapon *weapon);
+
 #endif //GAME_WEAPON_H

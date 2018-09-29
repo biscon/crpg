@@ -18,3 +18,14 @@ void ArmorTemplate_Init(ArmorTemplate *armorTemplate, ArmorType type, const char
     armorTemplate->cost = cost;
 }
 
+Armor *Armor_CreateFromTemplate(ArmorTemplate *template)
+{
+    Armor* armor = calloc(1, sizeof(Armor));
+    armor->condition = RPG_CONDITION_MAX;
+    armor->template = template;
+    return armor;
+}
+
+void Armor_Destroy(Armor *armor) {
+    free(armor);
+}

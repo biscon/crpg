@@ -9,9 +9,13 @@
 #define RPG_MAX_ARMOR_TEMPLATES     128
 #define RPG_MAX_WEAPON_TEMPLATES    128
 #define RPG_MAX_MONSTER_TEMPLATES   128
-
+#define RPG_MAX_FACTIONS            64
 
 #define RPG_CONDITION_MAX           127
 #define RPG_CONDITION_MIN           (-127)
+
+#define RPG_MIN_STANDING            (-127)
+#define RPG_NEUTRAL_STANDING        0
+#define RPG_MAX_STANDING            127
 
 #endif //GAME_RPG_DEFS_H

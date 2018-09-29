@@ -10,6 +10,7 @@
 #include "weapon.h"
 #include "monster.h"
 #include "rpg_defs.h"
+#include "faction.h"
 
 typedef struct {
     EntityClass*        entityClasses[RPG_MAX_CLASSES];
@@ -20,6 +21,8 @@ typedef struct {
     i32                 weaponTemplateCount;
     MonsterTemplate*    monsterTemplates[RPG_MAX_MONSTER_TEMPLATES];
     i32                 monsterTemplateCount;
+    Faction*            factions[RPG_MAX_FACTIONS];
+    i32                 factionCount;
 } RPGContext;
 
 
@@ -30,16 +33,15 @@ EntityClass*            RPG_GetEntityClass(RPGContext *context, const char* clas
 
 // Monsters
 MonsterTemplate*        RPG_GetMonsterTemplate(RPGContext *context, const char* templatename);
-Monster*                RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level);
-void                    RPG_DestroyMonster(Monster *monster);
+Entity*                 RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level);
+void                    RPG_DestroyEntity(Entity* entity);
 
 // Armor
 ArmorTemplate*          RPG_GetArmorTemplate(RPGContext *context, const char* templatename);
-Armor*                  RPG_CreateArmorFromTemplate(RPGContext *context, ArmorTemplate *template);
-void                    RPG_DestroyArmor(Armor *armor);
 
 // Weapons
 WeaponTemplate*         RPG_GetWeaponTemplate(RPGContext *context, const char* templatename);
-Weapon*                 RPG_CreateWeaponFromTemplate(RPGContext *context, WeaponTemplate *template);
-void                    RPG_DestroyWeapon(Weapon *weapon);
+
+// Faction
+
 #endif //GAME_RPG_H

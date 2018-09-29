@@ -10,6 +10,7 @@
 #include "monster.h"
 #include "rpg_defs.h"
 #include "rpg_log.h"
+#include "entity.h"
 
 /*
  * Helper functions for creating armor templates
@@ -54,12 +55,11 @@ internal void CreateWeaponTemplates(RPGContext* context)
  */
 internal void AddMonsterTemplate(RPGContext* context, const char *name, i32 ac,
                                  const char *attacks, const char *dmgdices, i32 xp,
-                                 const char *weapontpl, const char *factiontpl, const char *aicls,
-                                 const char *grammarcls)
+                                 const char *weapontpl, const char *factiontpl, const char *aicls)
 {
     RPG_LOG("Loading monster template %s\n", name);
     MonsterTemplate *template = calloc(1, sizeof(MonsterTemplate));
-    MonsterTemplate_Init(template, name, ac, attacks, dmgdices, xp, weapontpl, factiontpl, aicls, grammarcls);
+    MonsterTemplate_Init(template, name, ac, attacks, dmgdices, xp, weapontpl, factiontpl, aicls, GT_CREATURE);
     context->monsterTemplates[context->monsterTemplateCount] = template;
     context->monsterTemplateCount++;
 }
@@ -70,7 +70,11 @@ internal void CreateMonsterTemplates(RPGContext* context)
     RPG_LOG("Loaded %d monster templates.\n", context->monsterTemplateCount);
 }
 
-
+internal void AddFaction(RPGContext* context, const char *name, i8 standing)
+{
+    context->factions[context->factionCount] = Faction_Create(name, standing);
+    context->factionCount++;
+}
 
 /*
  * Context management
@@ -85,6 +89,8 @@ void RPG_InitContext(RPGContext *context)
     CreateArmorTemplates(context);
     CreateWeaponTemplates(context);
     CreateMonsterTemplates(context);
+    AddFaction(context, "Wildlife", RPG_MIN_STANDING);
+    AddFaction(context, "Villagers", RPG_NEUTRAL_STANDING);
 }
 
 void RPG_ShutdownContext(RPGContext *context)
@@ -104,6 +110,10 @@ void RPG_ShutdownContext(RPGContext *context)
 
     for(i32 i = 0; i < context->monsterTemplateCount; ++i) {
         free(context->monsterTemplates[i]);
+    }
+
+    for(i32 i = 0; i < context->factionCount; ++i) {
+        Faction_Destroy(context->factions[i]);
     }
 }
 
@@ -138,17 +148,7 @@ ArmorTemplate *RPG_GetArmorTemplate(RPGContext *context, const char *templatenam
 }
 
 
-Armor *Armor_CreateFromTemplate(ArmorTemplate *template)
-{
-    Armor* armor = calloc(1, sizeof(Armor));
-    armor->condition = RPG_CONDITION_MAX;
-    armor->template = template;
-    return armor;
-}
 
-void Armor_Destroy(Armor *armor) {
-    free(armor);
-}
 
 /*
  * Weapon template instancing function
@@ -163,19 +163,6 @@ WeaponTemplate *RPG_GetWeaponTemplate(RPGContext *context, const char *templaten
     }
     return NULL;
 }
-
-Weapon *RPG_CreateWeaponFromTemplate(RPGContext *context, WeaponTemplate *template)
-{
-    Weapon* armor = calloc(1, sizeof(Weapon));
-    armor->condition = RPG_CONDITION_MAX;
-    armor->template = template;
-    return armor;
-}
-
-void RPG_DestroyWeapon(Weapon *weapon) {
-    free(weapon);
-}
-
 
 /*
  * Monster template instancing functions
@@ -192,25 +179,32 @@ MonsterTemplate *RPG_GetMonsterTemplate(RPGContext *context, const char *templat
     return NULL;
 }
 
-Monster *RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level)
+Entity *RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level)
 {
-    Monster* monster = calloc(1, sizeof(Monster));
-    monster->template = template;
     Entity* entity = calloc(1, sizeof(Entity));
     Entity_Init(entity, ET_MONSTER, level, template->name, NULL);
-    monster->entity = entity;
     // load weapon if specified in template
     if(template->weaponTemplate) {
         WeaponTemplate* weaponTemplate = RPG_GetWeaponTemplate(context, template->weaponTemplate);
         if(weaponTemplate) {
-            monster->weapon = RPG_CreateWeaponFromTemplate(context, weaponTemplate);
+            entity->weapon = Weapon_CreateFromTemplate(weaponTemplate);
         }
     }
-    return monster;
+    return entity;
 }
 
-void RPG_DestroyMonster(Monster *monster)
+void RPG_DestroyEntity(Entity *entity)
 {
-    free(monster->entity);
-    free(monster);
+    switch(entity->type) {
+        case ET_CHARACTER: {
+
+            break;
+        }
+        case ET_MONSTER: {
+            if(entity->weapon)
+                Weapon_Destroy(entity->weapon);
+            break;
+        }
+    }
+    free(entity);
 }

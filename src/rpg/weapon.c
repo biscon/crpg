@@ -20,3 +20,16 @@ WeaponTemplate_Init(WeaponTemplate *weaponTemplate, const char *name, i32 cost, 
     weaponTemplate->weight = weight;
     weaponTemplate->range = range;
 }
+
+Weapon *Weapon_CreateFromTemplate(WeaponTemplate *template)
+{
+    Weapon* armor = calloc(1, sizeof(Weapon));
+    armor->condition = RPG_CONDITION_MAX;
+    armor->template = template;
+    return armor;
+}
+
+void Weapon_Destroy(Weapon *weapon)
+{
+    free(weapon);
+}

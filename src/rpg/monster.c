@@ -8,7 +8,7 @@
 
 void MonsterTemplate_Init(MonsterTemplate *template, const char *name, i32 ac, const char *attacks,
                           const char *dmgdices, i32 xp, const char *weapontpl,
-                          const char *factiontpl, const char *aicls, const char *grammarcls)
+                          const char *factiontpl, const char *aicls, GrammarType grammarType)
 {
     memset(template, 0, sizeof(MonsterTemplate));
     if(name)
@@ -25,6 +25,5 @@ void MonsterTemplate_Init(MonsterTemplate *template, const char *name, i32 ac, c
         strncpy(template->factionTemplate, factiontpl, sizeof(template->factionTemplate));
     if(aicls)
         strncpy(template->aiClass, aicls, sizeof(template->aiClass));
-    if(grammarcls)
-        strncpy(template->grammarClass, grammarcls, sizeof(template->grammarClass));
+    template->grammarType = grammarType;
 }

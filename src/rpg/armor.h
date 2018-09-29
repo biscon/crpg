@@ -25,5 +25,6 @@ typedef struct {
 
 void                ArmorTemplate_Init(ArmorTemplate *armorTemplate, ArmorType type,
                                        const char* name, i32 ac, i32 weight, i32 cost);
-
+Armor*              Armor_CreateFromTemplate(ArmorTemplate *template);
+void                Armor_Destroy(Armor *armor);
 #endif //GAME_ARMOR_H
