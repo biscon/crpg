@@ -72,31 +72,6 @@ const char *EntityClass_GetHitDice(EntityClass *entityClass, i32 level) {
     return NULL;
 }
 
-i32 EntityClass_GetAttackBonus(i32 level) {
-    int bonus = 0;
-    if(level == 1)
-        bonus = 1;
-    else if(level >=2 && level <=3)
-        bonus = 2;
-    else if(level == 4)
-        bonus = 3;
-    else if(level >= 5 && level <= 6)
-        bonus = 4;
-    else if(level == 7)
-        bonus = 5;
-    else if(level >= 8 && level <= 10)
-        bonus = 6;
-    else if(level >= 11 && level <= 12)
-        bonus = 7;
-    else if(level >= 13 && level <= 15)
-        bonus = 8;
-    else if(level >= 16 && level <= 17)
-        bonus = 9;
-    else if(level >= 18 && level <= 20)
-        bonus = 10;
-    return bonus;
-}
-
 i32 EntityClass_GetXPForLevel(EntityClass *entityClass, i32 level) {
     i32 size = VECTOR_SIZE(entityClass->levelTable);
     for(i32 i = 0; i < size; ++i) {

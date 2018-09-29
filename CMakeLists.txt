@@ -72,7 +72,13 @@ set(GAME_SOURCE_FILES
         src/rpg/monster.h
         src/rpg/rpg_defs.h
         src/rpg/rpg_log.c
-        src/rpg/rpg_log.h src/rpg/grammar.c src/rpg/grammar.h src/rpg/faction.c src/rpg/faction.h)
+        src/rpg/rpg_log.h
+        src/rpg/grammar.c
+        src/rpg/grammar.h
+        src/rpg/faction.c
+        src/rpg/faction.h
+        src/rpg/attack.c
+        src/rpg/attack.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

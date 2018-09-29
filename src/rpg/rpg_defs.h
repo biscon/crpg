@@ -10,6 +10,7 @@
 #define RPG_MAX_WEAPON_TEMPLATES    128
 #define RPG_MAX_MONSTER_TEMPLATES   128
 #define RPG_MAX_FACTIONS            64
+#define RPG_MAX_ENTITY_ATTACKS      32
 
 #define RPG_CONDITION_MAX           127
 #define RPG_CONDITION_MIN           (-127)

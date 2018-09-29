@@ -9,8 +9,11 @@
 #include "entity_class.h"
 #include "monster.h"
 #include "armor.h"
+#include "faction.h"
+#include "rpg_defs.h"
+#include "attack.h"
 
-typedef enum        {ET_CHARACTER, ET_MONSTER} EntityType;
+typedef enum                    {ET_CHARACTER, ET_MONSTER} EntityType;
 
 typedef struct
 {
@@ -24,6 +27,9 @@ typedef struct
     i32                         lastInitiativeRoll;
     AbilityScore                abilityScore;
     GrammarType                 grammarType;
+    Faction*                    faction;
+    Attack*                     attacks[RPG_MAX_ENTITY_ATTACKS];
+    i32                         attackCount;
 
     union {
         // ET_CHARACTER
@@ -37,15 +43,20 @@ typedef struct
         // ET_MONSTER
         struct {
             MonsterTemplate*    monsterTemplate;
-            Weapon*             weapon;
-        }; /* Rectangle */
+        };
     };
 } Entity;
 
-bool    Entity_Init(Entity *entity, EntityType type, i32 level, const char* name, EntityClass *entityClass);
+bool    Entity_Init(Entity *entity, EntityType type, i32 level, const char* name, EntityClass *entityClass, MonsterTemplate* template);
 void    Entity_GetHitDice(Entity *entity, char* hitdice, size_t size);
 i32     Entity_GetAttackBonus(Entity *entity);
 void    Entity_IncreaseLevel(Entity *entity);
-bool    Entity_AwardXp(Entity *entity, int xp);
+bool    Entity_AwardXP(Entity *entity, int xp);
+i32     Entity_GetDEXBonus(Entity *entity);
+i32     Entity_GetSTRBonus(Entity *entity);
+i32     Entity_GetCONBonus(Entity *entity);
+void    Entity_SetShield(Entity *entity, Armor* shield);
+void    Entity_SetMainWeapon(Entity *entity, Weapon *weapon);
+void    Entity_SetOffWeapon(Entity *entity, Weapon *weapon);
 
 #endif

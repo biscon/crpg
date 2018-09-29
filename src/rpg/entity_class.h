@@ -27,7 +27,6 @@ void            EntityClass_Free(EntityClass *entityClass);
 
 i32             EntityClass_CalcLevel(EntityClass *entityClass, i32 xp);
 const char*     EntityClass_GetHitDice(EntityClass *entityClass, i32 level);
-i32             EntityClass_GetAttackBonus(i32 level);
 i32             EntityClass_GetXPForLevel(EntityClass* entityClass, i32 level);
 
 #endif //GAME_ENTITY_CLASS_H

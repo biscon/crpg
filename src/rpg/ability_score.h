@@ -20,6 +20,6 @@ typedef struct
 void    AbilityScore_Roll(AbilityScore *score);
 void    AbilityScore_Roll4D6DropLowest(AbilityScore *score);
 void    AbilityScore_Print(AbilityScore *score, char *buffer, size_t bufsize);
-i32     AbilityScore_CalcPenalty(i32 val);
+i32     AbilityScore_CalcBonusOrPenalty(i32 val);
 
 #endif //GAME_ABILITY_SCORE_H

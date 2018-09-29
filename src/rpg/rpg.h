@@ -31,10 +31,15 @@ void                    RPG_InitContext(RPGContext *context);
 void                    RPG_ShutdownContext(RPGContext *context);
 EntityClass*            RPG_GetEntityClass(RPGContext *context, const char* classname);
 
+// Characters
+Entity*                 RPG_CreateCharacterEntity(RPGContext* context, EntityClass *entityClass,
+                                         const char* name, i32 level);
+
 // Monsters
 MonsterTemplate*        RPG_GetMonsterTemplate(RPGContext *context, const char* templatename);
 Entity*                 RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level);
 void                    RPG_DestroyEntity(Entity* entity);
+void                    RPG_LogEntity(Entity* entity);
 
 // Armor
 ArmorTemplate*          RPG_GetArmorTemplate(RPGContext *context, const char* templatename);

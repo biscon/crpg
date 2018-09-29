@@ -9,4 +9,6 @@
 u32 DecodeCodePoint(u32 *cpLen, const char *str);
 u32 EncodeCodePoint(u8 *buffer, const u32 cp);
 
+char * TrimString(char *str);
+
 #endif //GAME_STRING_UTIL_H

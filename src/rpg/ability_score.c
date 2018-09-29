@@ -40,7 +40,7 @@ void AbilityScore_Print(AbilityScore *score, char *buffer, size_t bufsize)
              score->STR, score->INT, score->WIS, score->DEX, score->CON, score->CHA);
 }
 
-i32 AbilityScore_CalcPenalty(i32 val) {
+i32 AbilityScore_CalcBonusOrPenalty(i32 val) {
     i32 bonus = 0;
     if(val <= 1)
         bonus = -5;

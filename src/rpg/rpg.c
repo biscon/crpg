@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <malloc.h>
+#include <assert.h>
 #include "rpg.h"
 #include "dice.h"
 #include "entity_class.h"
@@ -11,6 +12,7 @@
 #include "rpg_defs.h"
 #include "rpg_log.h"
 #include "entity.h"
+#include "attack.h"
 
 /*
  * Helper functions for creating armor templates
@@ -182,14 +184,7 @@ MonsterTemplate *RPG_GetMonsterTemplate(RPGContext *context, const char *templat
 Entity *RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level)
 {
     Entity* entity = calloc(1, sizeof(Entity));
-    Entity_Init(entity, ET_MONSTER, level, template->name, NULL);
-    // load weapon if specified in template
-    if(template->weaponTemplate) {
-        WeaponTemplate* weaponTemplate = RPG_GetWeaponTemplate(context, template->weaponTemplate);
-        if(weaponTemplate) {
-            entity->weapon = Weapon_CreateFromTemplate(weaponTemplate);
-        }
-    }
+    Entity_Init(entity, ET_MONSTER, level, template->name, NULL, template);
     return entity;
 }
 
@@ -197,14 +192,72 @@ void RPG_DestroyEntity(Entity *entity)
 {
     switch(entity->type) {
         case ET_CHARACTER: {
-
+            if(entity->mainWeapon)
+                Weapon_Destroy(entity->mainWeapon);
+            if(entity->offWeapon)
+                Weapon_Destroy(entity->offWeapon);
+            if(entity->shield)
+                Armor_Destroy(entity->shield);
+            if(entity->armor)
+                Armor_Destroy(entity->armor);
             break;
         }
         case ET_MONSTER: {
-            if(entity->weapon)
-                Weapon_Destroy(entity->weapon);
             break;
         }
     }
     free(entity);
 }
+
+/*
+ * Character instancing functions
+ */
+Entity *
+RPG_CreateCharacterEntity(RPGContext *context, EntityClass* entityClass, const char *name, i32 level)
+{
+    Entity* entity = calloc(1, sizeof(Entity));
+    assert(entityClass != NULL);
+    assert(name != NULL);
+    Entity_Init(entity, ET_CHARACTER, level, name, entityClass, NULL);
+    return entity;
+}
+
+void RPG_LogEntity(Entity *entity) {
+    RPG_LOG("=====================================================================\n");
+    RPG_LOG("Name:\t\t%s\n", entity->name);
+    RPG_LOG("Level:\t\t%d\n", entity->level);
+    RPG_LOG("HP:\t\t\t%d\n", entity->HP);
+    RPG_LOG("MaxHP:\t\t%d\n", entity->maxHP);
+    RPG_LOG("XP:\t\t\t%d\n", entity->XP);
+    RPG_LOG("Money:\t\t%d\n", entity->money);
+    RPG_LOG("Class:\t\t");
+    if(entity->type == ET_CHARACTER) {
+        assert(entity->entityClass != NULL);
+        RPG_LOG("%s\n", entity->entityClass->name);
+        RPG_LOG("Bonuses:\tCON = %d, DEX = %d, STR = %d\n", Entity_GetCONBonus(entity),
+        Entity_GetDEXBonus(entity), Entity_GetSTRBonus(entity));
+    }
+    else if(entity->type == ET_MONSTER) {
+        RPG_LOG("Monster\n");
+    }
+    RPG_LOG("Attack bonus:\t%d\n", Entity_GetAttackBonus(entity));
+
+    AbilityScore* score = &entity->abilityScore;
+    RPG_LOG( "STR: %d\n"
+             "INT: %d\n"
+             "WIS: %d\n"
+             "DEX: %d\n"
+             "CON: %d\n"
+             "CHA: %d\n",
+             score->STR, score->INT, score->WIS, score->DEX, score->CON, score->CHA);
+
+    if(entity->attackCount > 0) {
+        RPG_LOG("Attacks:\n");
+        for (i32 i = 0; i < entity->attackCount; ++i) {
+            Attack* a = entity->attacks[i];
+            RPG_LOG("\t%s: \t%s \t\t\t\t%s\n", Attack_GetTypeAsString(a->type), a->name, a->damageRoll);
+        }
+    }
+    RPG_LOG("=====================================================================\n");
+}
+

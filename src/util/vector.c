@@ -22,7 +22,7 @@ int VectorSize(Vector *v)
 void VectorResize(Vector *v, i32 capacity)
 {
 #ifdef DEBUG
-    printf("vector_resize: %d to %d\n", v->capacity, capacity);
+    //printf("vector_resize: %d to %d\n", v->capacity, capacity);
 #endif
 
     void **items = realloc(v->items, sizeof(void *) * capacity);

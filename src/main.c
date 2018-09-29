@@ -21,13 +21,13 @@ global_variable u64 PerformanceFrequency = 0;
 #include <assert.h>
 
 
-double platformGetTime() {
+double GetTime() {
     return ((double) (SDL_GetPerformanceCounter() - InitTimeStamp)) / (double) PerformanceFrequency;
 }
 
 // Internal functions ------------------------------------------------------------------------------
 
-internal void handleKeyboardEvent(const SDL_Event *event)
+internal void HandleKeyboardEvent(const SDL_Event *event)
 {
     switch( event->type ) {
         case SDL_KEYDOWN: {
@@ -44,7 +44,7 @@ internal void handleKeyboardEvent(const SDL_Event *event)
 }
 
 
-internal void handleMouseEvent(const SDL_Event *event)
+internal void HandleMouseEvent(const SDL_Event *event)
 {
     switch( event->type ) {
         case SDL_MOUSEMOTION: {
@@ -57,7 +57,7 @@ internal void handleMouseEvent(const SDL_Event *event)
     }
 }
 
-internal void handleWindowEvent(const SDL_Event *event)
+internal void HandleWindowEvent(const SDL_Event *event)
 {
     switch( event->window.event ) {
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
@@ -84,7 +84,7 @@ internal void handleWindowEvent(const SDL_Event *event)
     }
 }
 
-internal void updateInput() {
+internal void UpdateInput() {
     //Handle events on queue
     SDL_Event e;
     while( SDL_PollEvent( &e ) != 0 )
@@ -95,20 +95,20 @@ internal void updateInput() {
             ShouldQuit = true;
             return;
         }
-        handleKeyboardEvent(&e);
+        HandleKeyboardEvent(&e);
         if(e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEWHEEL || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP)
         {
-            handleMouseEvent(&e);
+            HandleMouseEvent(&e);
         }
         if(e.type == SDL_WINDOWEVENT)
         {
             //SDL_Log("Window event");
-            handleWindowEvent(&e);
+            HandleWindowEvent(&e);
         }
     }
 }
 
-internal bool initVideo()
+internal bool InitVideo()
 {
     // request a GL Context 3.3 core profile
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -152,7 +152,7 @@ internal bool initVideo()
     return true;
 }
 
-internal void shutdownVideo()
+internal void ShutdownVideo()
 {
     if(Context != NULL)
         SDL_GL_DeleteContext(Context);
@@ -176,7 +176,7 @@ int main()
         return -1;
     }
 
-    if(!initVideo())
+    if(!InitVideo())
     {
         SDL_Log("SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
         SDL_Quit();
@@ -187,7 +187,7 @@ int main()
     SDL_DisplayMode displayMode;
     if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
         SDL_Log("SDL_GetCurrentDisplayMode failed: %s", SDL_GetError());
-        shutdownVideo();
+        ShutdownVideo();
         SDL_Quit();
         return -1;
     }
@@ -220,25 +220,34 @@ int main()
     SDL_Log("AbilityScores:\n%s", buffer);
      */
 
-    Entity entity;
+    Entity *entity;
     EntityClass *entityClass = RPG_GetEntityClass(&rpgContext, "Fighter");
     assert(entityClass != NULL);
-    Entity_Init(&entity, ET_CHARACTER, 1, "Theodor", entityClass);
+    entity = RPG_CreateCharacterEntity(&rpgContext, entityClass, "Theodor", 1);
+    //Entity_IncreaseLevel(entity);
+    WeaponTemplate *maintpl = RPG_GetWeaponTemplate(&rpgContext, "Longsword");
+    assert(maintpl != NULL);
+    WeaponTemplate *offtpl = RPG_GetWeaponTemplate(&rpgContext, "Shortsword");
+    assert(offtpl != NULL);
+    Entity_SetMainWeapon(entity, Weapon_CreateFromTemplate(maintpl));
+    Entity_SetOffWeapon(entity, Weapon_CreateFromTemplate(offtpl));
+    RPG_LogEntity(entity);
 
-    Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Swearwolf"), 1);
+    Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Dire Wolf"), 2);
 
+    RPG_LogEntity(monster);
 
     while(!ShouldQuit)
     {
-        oldTime = platformGetTime();
-        updateInput();
+        oldTime = GetTime();
+        UpdateInput();
 
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             SDL_Log("Loop OpenGL error: %d", err);
         }
 
-        double secondsElapsedForWork = platformGetTime() - oldTime;
+        double secondsElapsedForWork = GetTime() - oldTime;
         double secondsElapsedForFrame = secondsElapsedForWork;
         while(secondsElapsedForFrame < targetSecondsPerFrame)
         {
@@ -247,7 +256,7 @@ int main()
                 //SDL_Log("sleepMS %d", sleepMS);
                 SDL_Delay(sleepMS);
             }
-            secondsElapsedForFrame = platformGetTime() - oldTime;
+            secondsElapsedForFrame = GetTime() - oldTime;
         }
 
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
@@ -255,11 +264,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         SDL_GL_SwapWindow(Window);
     }
+    RPG_DestroyEntity(entity);
     RPG_DestroyEntity(monster);
 
     RPG_ShutdownContext(&rpgContext);
 
-    shutdownVideo();
+    ShutdownVideo();
     SDL_Quit();
     return 0;
 }

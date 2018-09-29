@@ -28,7 +28,7 @@ i32 Dice_Roll(const char *string) {
     }
     sum += adds;
     //RPG_LOG("Rolling dice (no_rolls = %d, pips = %d, adds = %d) = %d\n", no_rolls, pips, adds, sum);
-    RPG_LOG("Rolling dice %s = %d\n", string, sum);
+    //RPG_LOG("Rolling dice %s = %d\n", string, sum);
     return sum;
 }
 
