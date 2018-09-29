@@ -13,6 +13,7 @@
 #include "rpg_log.h"
 #include "entity.h"
 #include "attack.h"
+#include "armor.h"
 
 /*
  * Helper functions for creating armor templates
@@ -230,32 +231,42 @@ void RPG_LogEntity(Entity *entity) {
     RPG_LOG("MaxHP:\t\t%d\n", entity->maxHP);
     RPG_LOG("XP:\t\t\t%d\n", entity->XP);
     RPG_LOG("Money:\t\t%d\n", entity->money);
+    RPG_LOG("AC:\t\t\t%d\n", Entity_GetAC(entity));
     RPG_LOG("Class:\t\t");
     if(entity->type == ET_CHARACTER) {
         assert(entity->entityClass != NULL);
         RPG_LOG("%s\n", entity->entityClass->name);
         RPG_LOG("Bonuses:\tCON = %d, DEX = %d, STR = %d\n", Entity_GetCONBonus(entity),
         Entity_GetDEXBonus(entity), Entity_GetSTRBonus(entity));
+        if(entity->armor != NULL)
+        {
+            RPG_LOG("Armor:\t\t%s\n", entity->armor->template->name);
+        }
+        if(entity->shield != NULL)
+        {
+            RPG_LOG("Shield:\t\t%s\n", entity->shield->template->name);
+        }
     }
     else if(entity->type == ET_MONSTER) {
         RPG_LOG("Monster\n");
     }
-    RPG_LOG("Attack bonus:\t%d\n", Entity_GetAttackBonus(entity));
+    RPG_LOG("Attack bonus:\t%d\n\n", Entity_GetAttackBonus(entity));
 
     AbilityScore* score = &entity->abilityScore;
-    RPG_LOG( "STR: %d\n"
-             "INT: %d\n"
-             "WIS: %d\n"
-             "DEX: %d\n"
-             "CON: %d\n"
-             "CHA: %d\n",
+    RPG_LOG("Ability Scores:\n");
+    RPG_LOG( "\tSTR: \t\t%d\n"
+             "\tINT: \t\t%d\n"
+             "\tWIS: \t\t%d\n"
+             "\tDEX: \t\t%d\n"
+             "\tCON: \t\t%d\n"
+             "\tCHA: \t\t%d\n",
              score->STR, score->INT, score->WIS, score->DEX, score->CON, score->CHA);
 
     if(entity->attackCount > 0) {
-        RPG_LOG("Attacks:\n");
+        RPG_LOG("\nAttacks:\n");
         for (i32 i = 0; i < entity->attackCount; ++i) {
             Attack* a = entity->attacks[i];
-            RPG_LOG("\t%s: \t%s \t\t\t\t%s\n", Attack_GetTypeAsString(a->type), a->name, a->damageRoll);
+            RPG_LOG("\t%s: \t%s (%s)\n", Attack_GetTypeAsString(a->type), a->name, a->damageRoll);
         }
     }
     RPG_LOG("=====================================================================\n");

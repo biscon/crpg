@@ -19,4 +19,6 @@
 #define RPG_NEUTRAL_STANDING        0
 #define RPG_MAX_STANDING            127
 
+#define RPG_BASE_AC                 10
+
 #endif //GAME_RPG_DEFS_H

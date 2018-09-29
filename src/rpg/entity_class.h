@@ -8,8 +8,6 @@
 #include <defs.h>
 #include <vector.h>
 
-#define BASE_AC 10
-
 typedef struct {
     i32         level;
     i32         minXP;

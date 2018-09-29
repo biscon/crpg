@@ -229,8 +229,15 @@ int main()
     assert(maintpl != NULL);
     WeaponTemplate *offtpl = RPG_GetWeaponTemplate(&rpgContext, "Shortsword");
     assert(offtpl != NULL);
+    ArmorTemplate *armortpl = RPG_GetArmorTemplate(&rpgContext, "Chain Mail");
+    assert(armortpl != NULL);
+    ArmorTemplate *shieldtpl = RPG_GetArmorTemplate(&rpgContext, "Shield");
+    assert(shieldtpl != NULL);
+
     Entity_SetMainWeapon(entity, Weapon_CreateFromTemplate(maintpl));
     Entity_SetOffWeapon(entity, Weapon_CreateFromTemplate(offtpl));
+    Entity_SetArmor(entity, Armor_CreateFromTemplate(armortpl));
+    Entity_SetShield(entity, Armor_CreateFromTemplate(shieldtpl));
     RPG_LogEntity(entity);
 
     Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Dire Wolf"), 2);

@@ -16,6 +16,7 @@
 #include "weapon.h"
 #include "monster.h"
 #include "../util/string_util.h"
+#include "armor.h"
 
 internal void CharacterRollStartingMaxHP(Entity *entity)
 {
@@ -327,6 +328,21 @@ bool Entity_AwardXP(Entity *entity, int xp)
     return false;
 }
 
+i32 Entity_GetAC(Entity *entity) {
+    if(entity->type == ET_CHARACTER) {
+        i32 dex_bonus = Entity_GetDEXBonus(entity);
+        i32 ac = RPG_BASE_AC + dex_bonus;
+        if (entity->armor != NULL)
+            ac = entity->armor->template->AC + dex_bonus;
+        if (entity->shield != NULL)
+            ac += entity->shield->template->AC;
+        return ac;
+    } else if(entity->type == ET_MONSTER) {
+        return entity->monsterTemplate->AC;
+    }
+    return RPG_BASE_AC;
+}
+
 i32 Entity_GetDEXBonus(Entity *entity)
 {
     if(entity->type == ET_CHARACTER) {
@@ -353,6 +369,14 @@ i32 Entity_GetCONBonus(Entity *entity)
     }
     return 0;
 }
+
+void Entity_SetArmor(Entity *entity, Armor *armor)
+{
+    assert(entity != NULL);
+    assert(entity->type == ET_CHARACTER);
+    entity->armor = armor;
+}
+
 
 void Entity_SetShield(Entity *entity, Armor *shield)
 {
@@ -384,4 +408,3 @@ void Entity_SetOffWeapon(Entity *entity, Weapon *weapon) {
     }
     RebuildEntityAttacks(entity);
 }
-
