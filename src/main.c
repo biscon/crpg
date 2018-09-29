@@ -212,14 +212,6 @@ int main()
     RPGContext rpgContext;
     RPG_InitContext(&rpgContext);
 
-    /*
-    AbilityScore score = {0};
-    AbilityScore_Roll4D6DropLowest(&score);
-    char buffer[100];
-    AbilityScore_Print(&score, buffer, sizeof(buffer));
-    SDL_Log("AbilityScores:\n%s", buffer);
-     */
-
     Entity *entity;
     EntityClass *entityClass = RPG_GetEntityClass(&rpgContext, "Fighter");
     assert(entityClass != NULL);
