@@ -78,7 +78,7 @@ set(GAME_SOURCE_FILES
         src/rpg/faction.c
         src/rpg/faction.h
         src/rpg/attack.c
-        src/rpg/attack.h)
+        src/rpg/attack.h src/rpg/combat.c src/rpg/combat.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

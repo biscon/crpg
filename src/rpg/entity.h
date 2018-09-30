@@ -18,13 +18,12 @@ typedef enum                    {ET_CHARACTER, ET_MONSTER} EntityType;
 typedef struct
 {
     EntityType                  type;
-    char                        name[64];
+    char                        name[RPG_STR_SIZE_MEDIUM];
     i32                         level;
     i32                         HP;
     i32                         maxHP;
     i32                         XP;
     i32                         money;
-    i32                         lastInitiativeRoll;
     AbilityScore                abilityScore;
     GrammarType                 grammarType;
     Faction*                    faction;

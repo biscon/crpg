@@ -9,14 +9,14 @@
 #include "grammar.h"
 
 typedef struct {
-    char                name[64];
+    char                name[RPG_STR_SIZE_MEDIUM];
     i32                 AC;
-    char                attacks[128];
-    char                damageDices[128];
+    char                attacks[RPG_STR_SIZE_LARGE];
+    char                damageDices[RPG_STR_SIZE_LARGE];
     i32                 XP;
-    char                weaponTemplate[64];
-    char                factionTemplate[64];
-    char                aiClass[64];
+    char                weaponTemplate[RPG_STR_SIZE_MEDIUM];
+    char                factionTemplate[RPG_STR_SIZE_MEDIUM];
+    char                aiClass[RPG_STR_SIZE_MEDIUM];
     GrammarType         grammarType;
 } MonsterTemplate;
 

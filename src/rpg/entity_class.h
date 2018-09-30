@@ -7,16 +7,17 @@
 
 #include <defs.h>
 #include <vector.h>
+#include "rpg_defs.h"
 
 typedef struct {
     i32         level;
     i32         minXP;
     i32         maxXP;
-    char        hitDice[16];
+    char        hitDice[RPG_DICE_STR_SIZE];
 } LevelRow;
 
 typedef struct {
-                char name[64];
+                char name[RPG_STR_SIZE_MEDIUM];
                 Vector levelTable;
 } EntityClass;
 

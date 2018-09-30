@@ -12,8 +12,8 @@ typedef enum {AT_MAIN_HAND, AT_OFF_HAND, AT_TWO_HAND, AT_MONSTER} AttackType;
 
 typedef struct {
     AttackType  type;
-    char        name[64];
-    char        damageRoll[64];
+    char        name[RPG_STR_SIZE_MEDIUM];
+    char        damageRoll[RPG_STR_SIZE_MEDIUM];
     bool        isRanged;
     i32         range;
     Weapon      *weapon;

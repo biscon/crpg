@@ -3,6 +3,8 @@
 #include "defs.h"
 #include "rpg/ability_score.h"
 #include "rpg/rpg.h"
+#include "rpg/combat.h"
+#include "rpg/rpg_log.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -160,8 +162,13 @@ internal void ShutdownVideo()
         SDL_DestroyWindow(Window);
 }
 
-
-
+/**
+ * Test combat interface
+ */
+internal void onBeginRound(Encounter* enc)
+{
+    RPG_LOG("\nStarting round %d ------------------------------------------\n", enc->round);
+}
 
 /**
  * Entry point
@@ -215,7 +222,7 @@ int main()
     Entity *entity;
     EntityClass *entityClass = RPG_GetEntityClass(&rpgContext, "Fighter");
     assert(entityClass != NULL);
-    entity = RPG_CreateCharacterEntity(&rpgContext, entityClass, "Theodor", 1);
+    entity = RPG_CreateCharacterEntity(&rpgContext, entityClass, "Schweibart", 1);
     //Entity_IncreaseLevel(entity);
     WeaponTemplate *maintpl = RPG_GetWeaponTemplate(&rpgContext, "Longsword");
     assert(maintpl != NULL);
@@ -234,7 +241,18 @@ int main()
 
     Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Dire Wolf"), 2);
 
+    Entity *monster2 = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Swearwolf"), 1);
+
     RPG_LogEntity(monster);
+
+    CombatInterface interface;
+    interface.onBeginRound = onBeginRound;
+
+    Encounter *encounter = Encounter_Create(&interface);
+    Encounter_AddEntity(encounter, entity, ENC_TEAM_1);
+    Encounter_AddEntity(encounter, monster, ENC_TEAM_2);
+    Encounter_AddEntity(encounter, monster2, ENC_TEAM_2);
+    Encounter_Start(encounter);
 
     while(!ShouldQuit)
     {
@@ -258,13 +276,17 @@ int main()
             secondsElapsedForFrame = GetTime() - oldTime;
         }
 
+        Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
         // render debug info
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         SDL_GL_SwapWindow(Window);
     }
+    Encounter_Destroy(encounter);
+
     RPG_DestroyEntity(entity);
     RPG_DestroyEntity(monster);
+    RPG_DestroyEntity(monster2);
 
     RPG_ShutdownContext(&rpgContext);
 

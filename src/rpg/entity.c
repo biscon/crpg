@@ -37,7 +37,7 @@ internal void CharacterRollStartingMaxHP(Entity *entity)
 internal void MonsterRollStartingMaxHP(Entity *entity)
 {
     i32 max_hp = 0;
-    char hitdice[16];
+    char hitdice[RPG_DICE_STR_SIZE];
     memset(hitdice, 0, sizeof(hitdice));
     Entity_GetHitDice(entity, hitdice, sizeof(hitdice));
     for(int i = 1; i <= entity->level; ++i)
@@ -67,7 +67,7 @@ internal void BuildMonsterEntityAttacks(Entity *entity)
     assert(entity->monsterTemplate != NULL);
 
     // Parse attacks
-    char str[128] = {0};
+    char str[RPG_STR_SIZE_LARGE] = {0};
     strncpy(str, entity->monsterTemplate->attacks, sizeof(str));
     char *end_str;
     char *token = strtok_r(str, "/", &end_str);

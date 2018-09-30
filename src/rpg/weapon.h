@@ -6,6 +6,7 @@
 #define GAME_WEAPON_H
 
 #include <defs.h>
+#include "rpg_defs.h"
 
 typedef enum        {WS_SMALL, WS_MEDIUM, WS_LARGE}     WeaponSize;
 typedef enum        {WC_SHARP, WC_BLUNT, WC_GUN}        WeaponCategory;
@@ -13,8 +14,8 @@ typedef enum        {WC_SHARP, WC_BLUNT, WC_GUN}        WeaponCategory;
 typedef struct {
     WeaponCategory  category;
     WeaponSize      size;
-    char            name[64];
-    char            damage[16];
+    char            name[RPG_STR_SIZE_MEDIUM];
+    char            damage[RPG_DICE_STR_SIZE];
     i32             cost;
     i32             weight;
     i32             range;

@@ -100,7 +100,7 @@ void RPG_ShutdownContext(RPGContext *context)
 {
     RPG_LOG("Shutting down context\n");
     for(i32 i = 0; i < context->entityClassCount; ++i) {
-        free(context->entityClasses[i]);
+        EntityClass_Free(context->entityClasses[i]);
     }
 
     for(i32 i = 0; i < context->armorTemplateCount; ++i) {

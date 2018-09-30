@@ -6,9 +6,10 @@
 #define GAME_FACTION_H
 
 #include <defs.h>
+#include "rpg_defs.h"
 
 typedef struct {
-    char    name[128];
+    char    name[RPG_STR_SIZE_LARGE];
     i8      standing;       // -127 = Hates player, 0 = Neutral, 127 = Wanna have players babies
 } Faction;
 

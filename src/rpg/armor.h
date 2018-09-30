@@ -6,12 +6,13 @@
 #define GAME_ARMOR_H
 
 #include <defs.h>
+#include "rpg_defs.h"
 
 typedef enum        {AT_CHEST, AT_SHIELD} ArmorType;
 
 typedef struct {
     ArmorType       armorType;
-    char            name[64];
+    char            name[RPG_STR_SIZE_MEDIUM];
     i32             cost;
     i32             weight;
     i32             AC;
