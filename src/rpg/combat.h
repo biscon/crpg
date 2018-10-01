@@ -20,16 +20,20 @@
         4. For player combatant, pause simulation and wait for player to input valid action
         5. Execute player action (duration varies)
         5. Check victory condition: if only one remaining faction, end simulation, otherwise goto 1.
+
+        Battle arena consists of a center line, 4 slots on each side:
+
+        -4 -3 -2 -1  |0|  +1 +2 +3 +4
  */
 
 typedef struct CombatEvent CombatEvent;
 typedef struct CombatInterface CombatInterface;
+typedef struct AIInterface AIInterface;
+typedef struct Combatant Combatant;
 
 typedef enum {
-                        ENC_TEAM_1,
-                        ENC_TEAM_2,
-                        ENC_TEAM_3,
-                        ENC_TEAM_4
+                        ENC_PLAYER_TEAM,
+                        ENC_ENEMY_TEAM
 } Team;
 
 typedef enum {
@@ -39,13 +43,14 @@ typedef enum {
                         ES_PAUSED,
 } EncounterState;
 
-typedef struct {
+struct Combatant {
     Entity*             entity;
-    bool                isPlayerControlled;
     Team                team;
     i32                 lastInitiativeRoll;
-
-} Combatant;
+    AIInterface*        aiInterface;
+    Combatant*          target;
+    i8                  slot;
+};
 
 typedef struct {
     i32                 round;
@@ -60,19 +65,24 @@ typedef struct {
 } Encounter;
 
 struct CombatEvent {
-    u32                 (*combatEventAction)(Encounter* enc);
+    u32                 (*combatEventAction)    (Encounter* enc);
 };
 
 struct CombatInterface {
-    void                (*onBeginRound)(Encounter* enc);
-    void                (*onBeginTurn)(Encounter* enc);
-    void                (*onEndTurn)(Encounter* enc);
-    void                (*onEndRound)(Encounter* enc);
+    void                (*onBeginRound)         (Encounter* enc);
+    void                (*onBeginTurn)          (Encounter* enc);
+    void                (*onEndTurn)            (Encounter* enc);
+    void                (*onEndRound)           (Encounter* enc);
+};
+
+struct AIInterface {
+    Combatant*          (*onSelectTarget)       (Encounter* enc, Combatant *combatant);
+    void                (*onAttack)             (Encounter* enc, Combatant *combatant);
 };
 
 Encounter*  Encounter_Create(CombatInterface* combatInterface);
 void        Encounter_Destroy(Encounter* enc);
-void        Encounter_AddEntity(Encounter* enc, Entity* entity, Team team);
+void        Encounter_AddEntity(Encounter* enc, Entity* entity, Team team, i8 slot);
 void        Encounter_RemoveEntity(Encounter* enc, Entity* entity);
 void        Encounter_Update(Encounter* enc, u64 time_ms);
 void        Encounter_Start(Encounter* enc);

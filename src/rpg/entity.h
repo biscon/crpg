@@ -59,5 +59,7 @@ void    Entity_SetArmor(Entity *entity, Armor* armor);
 void    Entity_SetShield(Entity *entity, Armor* shield);
 void    Entity_SetMainWeapon(Entity *entity, Weapon *weapon);
 void    Entity_SetOffWeapon(Entity *entity, Weapon *weapon);
+bool    Entity_IsDead(Entity* entity);
+Attack* Entity_GetMaxRangedAttack(Entity* entity);
 
 #endif

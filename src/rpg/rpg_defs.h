@@ -27,4 +27,14 @@
 #define RPG_STR_SIZE_LARGE              128
 #define RPG_STR_SIZE_XLARGE             256
 
+#define RPG_CRIT_MODIFIER               1.5
+
+#define RPG_PARTY_SLOT_1                    (-1)
+#define RPG_PARTY_SLOT_2                    (-2)
+#define RPG_PARTY_SLOT_3                    (-3)
+#define RPG_PARTY_SLOT_4                    (-4)
+#define RPG_ENEMY_SLOT_1                    1
+#define RPG_ENEMY_SLOT_2                    2
+#define RPG_ENEMY_SLOT_3                    3
+#define RPG_ENEMY_SLOT_4                    4
 #endif //GAME_RPG_DEFS_H

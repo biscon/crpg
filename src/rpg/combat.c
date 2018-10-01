@@ -10,6 +10,7 @@
 #include "rpg_log.h"
 #include "dice.h"
 #include "entity.h"
+#include "attack.h"
 
 /*
  * Internal functions
@@ -58,6 +59,36 @@ internal i32 InitiativeSortComparator(const void *p1, const void *p2)
         return 1;
 }
 
+internal Combatant* GetCombatantInSlot(Encounter* enc, i8 slot)
+{
+    for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
+        Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
+        if(c->slot == slot) {
+            return c;
+        }
+    }
+    return NULL;
+}
+/*
+ * Default AI implementation
+ */
+internal Combatant* DefaultAI_OnSelectTarget(Encounter* enc, Combatant *combatant)
+{
+    return NULL;
+}
+
+internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
+{
+    Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
+    assert(attack != NULL);
+    // do we have a ranged attack?
+    if(attack->range > 1) {
+        RPG_LOG("Combatant %s can do a ranged attack (range: %d)\n", combatant->entity->name, attack->range);
+    } else {
+        RPG_LOG("Combatant %s can do a melee attack\n", combatant->entity->name);
+    }
+}
+
 /*
  * Action implementations
  */
@@ -99,18 +130,27 @@ internal u32 Action_EndTurn(Encounter *enc)
     return 1000;
 }
 
-internal u32 Action_BeginTurn(Encounter *enc)
-{
+internal u32 Action_BeginTurn(Encounter *enc) {
     RPG_LOG("Running Action_BeginTurn(), time is %d\n", enc->currentTime);
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
     RPG_LOG("Beginning turn for %s\n", c->entity->name);
-    if(enc->combatInterface->onBeginTurn)
+    if (enc->combatInterface->onBeginTurn)
         enc->combatInterface->onBeginTurn(enc);
 
-    CombatEvent event = {Action_EndTurn};
-    PushCombatEvent(enc, &event);
-
+    if(c->team == ENC_PLAYER_TEAM) {
+        enc->state = ES_INPUT_WAIT;
+        RPG_LOG("Entity %s waiting on input...\n", c->entity->name);
+    } else {
+        AIInterface *ai = c->aiInterface;
+        assert(ai != NULL);
+        c->target = ai->onSelectTarget(enc, c);
+        if(c->target) {
+            RPG_LOG("Entity %s targeted entity %s\n", c->entity->name, c->target->entity->name);
+        }
+        CombatEvent event = {Action_EndTurn};
+        PushCombatEvent(enc, &event);
+    }
     return 1000;
 }
 
@@ -171,11 +211,15 @@ void Encounter_Destroy(Encounter *enc)
     free(enc);
 }
 
-void Encounter_AddEntity(Encounter *enc, Entity *entity, Team team)
+void Encounter_AddEntity(Encounter *enc, Entity *entity, Team team, i8 slot)
 {
     Combatant* combatant = calloc(1, sizeof(Combatant));
     combatant->entity = entity;
     combatant->team = team;
+    combatant->aiInterface = calloc(1, sizeof(AIInterface));
+    combatant->aiInterface->onAttack = DefaultAI_OnAttack;
+    combatant->aiInterface->onSelectTarget = DefaultAI_OnSelectTarget;
+    combatant->slot = slot;
     VECTOR_ADD(enc->combatants, combatant);
 }
 
@@ -185,6 +229,8 @@ void Encounter_RemoveEntity(Encounter *enc, Entity *entity)
     if(index > 0) {
         Combatant *c = VECTOR_GET(enc->combatants, Combatant*, index);
         VECTOR_REMOVE(enc->combatants, index);
+        if(c->aiInterface)
+            free(c->aiInterface);
         free(c);
     }
 }
@@ -213,11 +259,21 @@ void Encounter_Update(Encounter *enc, u64 time_ms)
 
 void Encounter_Start(Encounter *enc)
 {
+    /*
+    i8 slot = 1;
+    for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
+        Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
+        if(c->team == ENC_ENEMY_TEAM) {
+            RPG_LOG("Placing enemy entity %s in slot %d", c->entity->name, slot);
+            c->slot = slot++;
+        }
+    }
+    */
+
     enc->timeToNextEvent = 0;
     enc->round = 0;
     CombatEvent event;
     event.combatEventAction = &Action_BeginRound;
-    //for(i32 i=0; i < 10; i++)
     PushCombatEvent(enc, &event);
     enc->state = ES_RUNNING;
 }

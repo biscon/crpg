@@ -240,7 +240,6 @@ int main()
     RPG_LogEntity(entity);
 
     Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Dire Wolf"), 2);
-
     Entity *monster2 = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Swearwolf"), 1);
 
     RPG_LogEntity(monster);
@@ -249,9 +248,9 @@ int main()
     interface.onBeginRound = onBeginRound;
 
     Encounter *encounter = Encounter_Create(&interface);
-    Encounter_AddEntity(encounter, entity, ENC_TEAM_1);
-    Encounter_AddEntity(encounter, monster, ENC_TEAM_2);
-    Encounter_AddEntity(encounter, monster2, ENC_TEAM_2);
+    Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM, RPG_PARTY_SLOT_1);
+    Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM, RPG_ENEMY_SLOT_1);
+    Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM, RPG_ENEMY_SLOT_2);
     Encounter_Start(encounter);
 
     while(!ShouldQuit)

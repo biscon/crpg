@@ -17,6 +17,7 @@
 #include "monster.h"
 #include "../util/string_util.h"
 #include "armor.h"
+#include "attack.h"
 
 internal void CharacterRollStartingMaxHP(Entity *entity)
 {
@@ -407,4 +408,27 @@ void Entity_SetOffWeapon(Entity *entity, Weapon *weapon) {
         RPG_LOG("Entity %s could not equip weapon %s in offhand.\n", entity->name, weapon->template->name);
     }
     RebuildEntityAttacks(entity);
+}
+
+bool Entity_IsDead(Entity *entity) {
+    if(entity->HP <= 0)
+        return true;
+    return false;
+}
+
+Attack* Entity_GetMaxRangedAttack(Entity *entity) {
+    i32 index_of_max = 0;
+    i32 value_of_max = INT32_MIN;
+    if(entity->attackCount > 0) {
+        for(i32 i = 0; i < entity->attackCount; ++i) {
+            Attack *attack = entity->attacks[i];
+            if(attack->range > value_of_max) {
+                index_of_max = i;
+                value_of_max = attack->range;
+
+            }
+        }
+        return entity->attacks[index_of_max];
+    }
+    return NULL;
 }
