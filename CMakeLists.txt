@@ -55,6 +55,8 @@ set(GAME_SOURCE_FILES
         src/include/defs.h
         src/main.c
         src/glad/glad.c
+        src/rpg/AStar.h
+        src/rpg/AStar.c
         src/rpg/dice.c
         src/rpg/ability_score.c
         src/rpg/ability_score.h
@@ -78,7 +80,9 @@ set(GAME_SOURCE_FILES
         src/rpg/faction.c
         src/rpg/faction.h
         src/rpg/attack.c
-        src/rpg/attack.h src/rpg/combat.c src/rpg/combat.h)
+        src/rpg/attack.h
+        src/rpg/combat.c
+        src/rpg/combat.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

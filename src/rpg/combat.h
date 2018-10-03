@@ -47,6 +47,11 @@ struct Position {
     i32                 y;
 };
 
+typedef struct {
+    Combatant *closest;
+    i32 distance;
+} DistQueryResult;
+
 struct Combatant {
     Entity*             entity;
     Team                team;
@@ -67,6 +72,7 @@ typedef struct {
     CombatInterface*    combatInterface;
     i32                 curCombatantId;
     Combatant*          grid[RPG_GRID_W][RPG_GRID_H];
+    Position            nodeGrid[RPG_GRID_W][RPG_GRID_H];
 } Encounter;
 
 struct CombatEvent {
@@ -81,6 +87,7 @@ struct CombatInterface {
 };
 
 struct AIInterface {
+    Combatant*          (*onSelectTarget)       (Encounter* enc, Combatant *combatant);
     void                (*onAttack)             (Encounter* enc, Combatant *combatant);
 };
 

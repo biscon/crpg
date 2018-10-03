@@ -6,11 +6,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #include "combat.h"
 #include "rpg_log.h"
 #include "dice.h"
 #include "entity.h"
 #include "attack.h"
+#include "AStar.h"
 
 /*
  * Internal functions
@@ -59,6 +61,86 @@ internal i32 InitiativeSortComparator(const void *p1, const void *p2)
         return 1;
 }
 
+// take the sqrt of me to get the actual distance ;) however that is much slower :D
+inline internal i32 GetDistanceSquared(const Position* c1, const Position* c2)
+{
+    return (c2->x-c1->x)*(c2->x-c1->x) +
+           (c2->y-c1->y)*(c2->y-c1->y);
+}
+
+internal void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResult *result)
+{
+    result->closest = NULL;
+    result->distance = INT32_MAX;
+    for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
+        Combatant *cur = VECTOR_GET(enc->combatants, Combatant*, i);
+        if(cur != c && c->team != cur->team) {  // if its not ourself and a different team
+            i32 dist = abs((i32) sqrt(GetDistanceSquared(&c->position, &cur->position)));
+            RPG_LOG("Distance between %s and %s is %d\n", c->entity->name, cur->entity->name, dist);
+            // update result if its lower than the previous distance found O(n)
+            if (dist < result->distance) {
+                result->distance = dist;
+                result->closest = cur;
+            }
+        }
+    }
+}
+
+/*
+ * Pathfinding
+ * If introducing diagonals remember to set edge coast to 1.4f
+ */
+internal void GetNodeNeighbors(ASNeighborList neighbors, void *node, void *context)
+{
+    Encounter* enc = (Encounter*) context;
+    Position* pos = (Position*) node;
+    //RPG_LOG("GetNodeNeighbors query node at %d,%d\n", pos->x, pos->y);
+    if(pos->x >= 1) {   // add left
+        //RPG_LOG("Adding left %d,%d\n", pos->x-1, pos->y);
+        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x-1][pos->y], 1.0f);
+    }
+    if(pos->x <= RPG_GRID_W-2) {    // add right
+        //RPG_LOG("Adding right %d,%d\n", pos->x+1, pos->y);
+        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x+1][pos->y], 1.0f);
+    }
+    if(pos->y >= 1) {   // add top
+        //RPG_LOG("Adding top %d,%d\n", pos->x, pos->y-1);
+        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x][pos->y-1], 1.0f);
+    }
+    if(pos->y <= RPG_GRID_H-2) {   // add bottom
+        //RPG_LOG("Adding bottom %d,%d\n", pos->x, pos->y+1);
+        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x][pos->y+1], 1.0f);
+    }
+}
+
+internal float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
+{
+    Position* from = (Position*) fromNode;
+    Position* to = (Position*) toNode;
+    float res = (float) abs((i32) sqrt(GetDistanceSquared(from, to)));
+    //RPG_LOG("Returning distance heuristic (%d,%d --> %d,%d) %f\n", from->x, from->y, to->x, to->y, res);
+    return res;
+
+}
+
+internal void FindPathBetweenCombatants(Encounter* enc, Combatant *c1, Combatant *c2)
+{
+    ASPathNodeSource source;
+    memset(&source, 0, sizeof(ASPathNodeSource));
+    source.nodeSize = sizeof(Position*);
+    source.nodeNeighbors = GetNodeNeighbors;
+    source.pathCostHeuristic = GetPathCostHeuristic;
+    void *from = &enc->nodeGrid[c1->position.x][c1->position.y];
+    void *to = &enc->nodeGrid[c2->position.x][c2->position.y];
+    ASPath path = ASPathCreate(&source, enc, from, to);
+    if(path) {
+        RPG_LOG("A path was found between %s and %s (steps: %d)\n", c1->entity->name, c2->entity->name, ASPathGetCount(path));
+        ASPathDestroy(path);
+    } else {
+        RPG_LOG("Pathfinding failed for reasons unknown :/\n");
+    }
+
+}
 /*
  * Action implementations
  */
@@ -115,7 +197,16 @@ internal u32 Action_BeginTurn(Encounter *enc) {
     } else { */
         AIInterface *ai = c->aiInterface;
         assert(ai != NULL);
-        ai->onAttack(enc, c);
+        c->target = ai->onSelectTarget(enc, c);
+        if(c->target) {
+            RPG_LOG("Combatant %s selected target %s\n", c->entity->name, c->target->entity->name);
+            CombatEvent event = {Action_EndTurn};
+            PushCombatEvent(enc, &event);
+        } else {
+            RPG_LOG("Combatant %s didn't select a target, ending turn.\n", c->entity->name);
+            CombatEvent event = {Action_EndTurn};
+            PushCombatEvent(enc, &event);
+        }
     //}
     return 1000;
 }
@@ -154,6 +245,17 @@ internal u32 Action_BeginRound(Encounter* enc)
 /*
  * Default AI implementation
  */
+internal Combatant* DefaultAI_OnSelectTarget(Encounter* enc, Combatant *combatant)
+{
+    DistQueryResult result;
+    FindClosestEnemy(enc, combatant, &result);
+    if(result.closest) {
+        FindPathBetweenCombatants(enc, combatant, result.closest);
+        return result.closest;
+    }
+    return NULL;
+}
+
 internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
 {
 
@@ -180,6 +282,13 @@ Encounter *Encounter_Create(CombatInterface* combatInterface)
     enc->eventStack = calloc(RPG_COMBAT_EVENT_STACK_SIZE, sizeof(CombatEvent));
     enc->eventStackTop = -1;
     enc->combatInterface = combatInterface;
+    // initialize pathfinding node grid, could prolly be done smarter
+    for(i32 x = 0; x < RPG_GRID_W; ++x) {
+        for (i32 y = 0; y < RPG_GRID_H; ++y) {
+            enc->nodeGrid[x][y].x = x;
+            enc->nodeGrid[x][y].y = y;
+        }
+    }
     return enc;
 }
 
@@ -201,6 +310,7 @@ void Encounter_AddEntity(Encounter *enc, Entity *entity, Team team)
     combatant->team = team;
     combatant->aiInterface = calloc(1, sizeof(AIInterface));
     combatant->aiInterface->onAttack = DefaultAI_OnAttack;
+    combatant->aiInterface->onSelectTarget = DefaultAI_OnSelectTarget;
     VECTOR_ADD(enc->combatants, combatant);
 }
 
@@ -252,7 +362,7 @@ internal void PlaceHostileOnGrid(Encounter *enc, Combatant *enemy)
                 enc->grid[gx][gy] = enemy;
                 enemy->position.x = gx;
                 enemy->position.y = gy;
-                RPG_LOG("Placing enemy entity %s at pos %d,%d\n", enemy->entity->name, gx, gy);
+                RPG_LOG("Placing enemy combatant %s at pos %d,%d\n", enemy->entity->name, gx, gy);
                 return;
             }
         }
@@ -274,12 +384,12 @@ internal void PlaceFriendlyOnGrid(Encounter *enc, Combatant *c)
                 enc->grid[gx][gy] = c;
                 c->position.x = gx;
                 c->position.y = gy;
-                RPG_LOG("Placing c entity %s at pos %d,%d\n", c->entity->name, gx, gy);
+                RPG_LOG("Placing combatant %s at pos %d,%d\n", c->entity->name, gx, gy);
                 return;
             }
         }
     }
-    RPG_LOG("Could not place c combatant %s!!\n", c->entity->name);
+    RPG_LOG("Could not place combatant %s!!\n", c->entity->name);
 }
 
 
