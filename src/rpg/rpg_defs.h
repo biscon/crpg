@@ -29,12 +29,6 @@
 
 #define RPG_CRIT_MODIFIER               1.5
 
-#define RPG_PARTY_SLOT_1                    (-1)
-#define RPG_PARTY_SLOT_2                    (-2)
-#define RPG_PARTY_SLOT_3                    (-3)
-#define RPG_PARTY_SLOT_4                    (-4)
-#define RPG_ENEMY_SLOT_1                    1
-#define RPG_ENEMY_SLOT_2                    2
-#define RPG_ENEMY_SLOT_3                    3
-#define RPG_ENEMY_SLOT_4                    4
+#define RPG_GRID_W                      9
+#define RPG_GRID_H                      4
 #endif //GAME_RPG_DEFS_H

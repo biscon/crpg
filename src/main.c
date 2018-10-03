@@ -248,9 +248,9 @@ int main()
     interface.onBeginRound = onBeginRound;
 
     Encounter *encounter = Encounter_Create(&interface);
-    Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM, RPG_PARTY_SLOT_1);
-    Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM, RPG_ENEMY_SLOT_1);
-    Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM, RPG_ENEMY_SLOT_2);
+    Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM);
+    Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM);
+    Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
     Encounter_Start(encounter);
 
     while(!ShouldQuit)

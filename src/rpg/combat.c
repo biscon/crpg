@@ -59,36 +59,6 @@ internal i32 InitiativeSortComparator(const void *p1, const void *p2)
         return 1;
 }
 
-internal Combatant* GetCombatantInSlot(Encounter* enc, i8 slot)
-{
-    for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
-        Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
-        if(c->slot == slot) {
-            return c;
-        }
-    }
-    return NULL;
-}
-/*
- * Default AI implementation
- */
-internal Combatant* DefaultAI_OnSelectTarget(Encounter* enc, Combatant *combatant)
-{
-    return NULL;
-}
-
-internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
-{
-    Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
-    assert(attack != NULL);
-    // do we have a ranged attack?
-    if(attack->range > 1) {
-        RPG_LOG("Combatant %s can do a ranged attack (range: %d)\n", combatant->entity->name, attack->range);
-    } else {
-        RPG_LOG("Combatant %s can do a melee attack\n", combatant->entity->name);
-    }
-}
-
 /*
  * Action implementations
  */
@@ -138,19 +108,15 @@ internal u32 Action_BeginTurn(Encounter *enc) {
     if (enc->combatInterface->onBeginTurn)
         enc->combatInterface->onBeginTurn(enc);
 
+    /*
     if(c->team == ENC_PLAYER_TEAM) {
         enc->state = ES_INPUT_WAIT;
         RPG_LOG("Entity %s waiting on input...\n", c->entity->name);
-    } else {
+    } else { */
         AIInterface *ai = c->aiInterface;
         assert(ai != NULL);
-        c->target = ai->onSelectTarget(enc, c);
-        if(c->target) {
-            RPG_LOG("Entity %s targeted entity %s\n", c->entity->name, c->target->entity->name);
-        }
-        CombatEvent event = {Action_EndTurn};
-        PushCombatEvent(enc, &event);
-    }
+        ai->onAttack(enc, c);
+    //}
     return 1000;
 }
 
@@ -185,6 +151,23 @@ internal u32 Action_BeginRound(Encounter* enc)
     return 1000;
 }
 
+/*
+ * Default AI implementation
+ */
+internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
+{
+
+    Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
+    assert(attack != NULL);
+    // do we have a ranged attack?
+    if(attack->range > 1) {
+        RPG_LOG("Combatant %s can do a ranged attack (range: %d)\n", combatant->entity->name, attack->range);
+    } else {
+        RPG_LOG("Combatant %s can do a melee attack\n", combatant->entity->name);
+    }
+    CombatEvent event = {Action_EndTurn};
+    PushCombatEvent(enc, &event);
+}
 
 /*
  * Implementation of external interface
@@ -211,15 +194,13 @@ void Encounter_Destroy(Encounter *enc)
     free(enc);
 }
 
-void Encounter_AddEntity(Encounter *enc, Entity *entity, Team team, i8 slot)
+void Encounter_AddEntity(Encounter *enc, Entity *entity, Team team)
 {
     Combatant* combatant = calloc(1, sizeof(Combatant));
     combatant->entity = entity;
     combatant->team = team;
     combatant->aiInterface = calloc(1, sizeof(AIInterface));
     combatant->aiInterface->onAttack = DefaultAI_OnAttack;
-    combatant->aiInterface->onSelectTarget = DefaultAI_OnSelectTarget;
-    combatant->slot = slot;
     VECTOR_ADD(enc->combatants, combatant);
 }
 
@@ -257,18 +238,68 @@ void Encounter_Update(Encounter *enc, u64 time_ms)
     }
 }
 
+internal void PlaceHostileOnGrid(Encounter *enc, Combatant *enemy)
+{
+    i32 offx = RPG_GRID_W-4;
+    i32 offy = (RPG_GRID_H/2)-2;
+    for(i32 x = 0; x < 4; ++x) {
+        for(i32 y = 0; y < 4; ++y) {
+            i32 gx = offx + x;
+            i32 gy = offy + y;
+            //RPG_LOG("Scanning grid pos %d,%d\n", offx + x, offy + y);
+            if(enc->grid[gx][gy] == NULL)
+            {
+                enc->grid[gx][gy] = enemy;
+                enemy->position.x = gx;
+                enemy->position.y = gy;
+                RPG_LOG("Placing enemy entity %s at pos %d,%d\n", enemy->entity->name, gx, gy);
+                return;
+            }
+        }
+    }
+    RPG_LOG("Could not place enemy combatant %s!!\n", enemy->entity->name);
+}
+
+internal void PlaceFriendlyOnGrid(Encounter *enc, Combatant *c)
+{
+    i32 offx = 0;
+    i32 offy = (RPG_GRID_H/2)-2;
+    for(i32 x = 3; x >= 0; --x) {
+        for(i32 y = 0; y < 4; ++y) {
+            i32 gx = offx + x;
+            i32 gy = offy + y;
+            //RPG_LOG("Scanning grid pos %d,%d\n", offx + x, offy + y);
+            if(enc->grid[gx][gy] == NULL)
+            {
+                enc->grid[gx][gy] = c;
+                c->position.x = gx;
+                c->position.y = gy;
+                RPG_LOG("Placing c entity %s at pos %d,%d\n", c->entity->name, gx, gy);
+                return;
+            }
+        }
+    }
+    RPG_LOG("Could not place c combatant %s!!\n", c->entity->name);
+}
+
+
 void Encounter_Start(Encounter *enc)
 {
-    /*
-    i8 slot = 1;
+    // place friendlies
+    for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
+        Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
+        if(c->team == ENC_PLAYER_TEAM) {
+            PlaceFriendlyOnGrid(enc, c);
+        }
+    }
+
+    // place enemies
     for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
         Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
         if(c->team == ENC_ENEMY_TEAM) {
-            RPG_LOG("Placing enemy entity %s in slot %d", c->entity->name, slot);
-            c->slot = slot++;
+            PlaceHostileOnGrid(enc, c);
         }
     }
-    */
 
     enc->timeToNextEvent = 0;
     enc->round = 0;

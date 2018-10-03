@@ -22,14 +22,13 @@
         5. Check victory condition: if only one remaining faction, end simulation, otherwise goto 1.
 
         Battle arena consists of a center line, 4 slots on each side:
-
-        -4 -3 -2 -1  |0|  +1 +2 +3 +4
  */
 
 typedef struct CombatEvent CombatEvent;
 typedef struct CombatInterface CombatInterface;
 typedef struct AIInterface AIInterface;
 typedef struct Combatant Combatant;
+typedef struct Position Position;
 
 typedef enum {
                         ENC_PLAYER_TEAM,
@@ -43,13 +42,18 @@ typedef enum {
                         ES_PAUSED,
 } EncounterState;
 
+struct Position {
+    i32                 x;
+    i32                 y;
+};
+
 struct Combatant {
     Entity*             entity;
     Team                team;
     i32                 lastInitiativeRoll;
     AIInterface*        aiInterface;
     Combatant*          target;
-    i8                  slot;
+    Position            position;
 };
 
 typedef struct {
@@ -62,6 +66,7 @@ typedef struct {
     i32                 eventStackTop;
     CombatInterface*    combatInterface;
     i32                 curCombatantId;
+    Combatant*          grid[RPG_GRID_W][RPG_GRID_H];
 } Encounter;
 
 struct CombatEvent {
@@ -76,13 +81,12 @@ struct CombatInterface {
 };
 
 struct AIInterface {
-    Combatant*          (*onSelectTarget)       (Encounter* enc, Combatant *combatant);
     void                (*onAttack)             (Encounter* enc, Combatant *combatant);
 };
 
 Encounter*  Encounter_Create(CombatInterface* combatInterface);
 void        Encounter_Destroy(Encounter* enc);
-void        Encounter_AddEntity(Encounter* enc, Entity* entity, Team team, i8 slot);
+void        Encounter_AddEntity(Encounter* enc, Entity* entity, Team team);
 void        Encounter_RemoveEntity(Encounter* enc, Entity* entity);
 void        Encounter_Update(Encounter* enc, u64 time_ms);
 void        Encounter_Start(Encounter* enc);

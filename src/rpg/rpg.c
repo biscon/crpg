@@ -182,6 +182,7 @@ MonsterTemplate *RPG_GetMonsterTemplate(RPGContext *context, const char *templat
     return NULL;
 }
 
+// TODO implement name prefixes based on stat eg low int = Retarded Werewolf, low cha = Ugly Coyote etc
 Entity *RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *template, i32 level)
 {
     Entity* entity = calloc(1, sizeof(Entity));
