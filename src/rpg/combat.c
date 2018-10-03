@@ -135,6 +135,10 @@ internal void FindPathBetweenCombatants(Encounter* enc, Combatant *c1, Combatant
     ASPath path = ASPathCreate(&source, enc, from, to);
     if(path) {
         RPG_LOG("A path was found between %s and %s (steps: %d)\n", c1->entity->name, c2->entity->name, ASPathGetCount(path));
+        for(i32 i = 0; i < ASPathGetCount(path); ++i) {
+            Position* node = (Position*) ASPathGetNode(path, (size_t) i);
+            RPG_LOG("\t\tStep %d:\t%d,%d\n", i, node->x, node->y);
+        }
         ASPathDestroy(path);
     } else {
         RPG_LOG("Pathfinding failed for reasons unknown :/\n");
