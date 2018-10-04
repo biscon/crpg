@@ -117,7 +117,7 @@ internal float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
 {
     Position* from = (Position*) fromNode;
     Position* to = (Position*) toNode;
-    float res = (float) abs((i32) sqrt(GetDistanceSquared(from, to)));
+    float res = (float) fabs(sqrt(GetDistanceSquared(from, to)));
     //RPG_LOG("Returning distance heuristic (%d,%d --> %d,%d) %f\n", from->x, from->y, to->x, to->y, res);
     return res;
 
