@@ -68,6 +68,13 @@ inline internal i32 GetDistanceSquared(const Position* c1, const Position* c2)
            (c2->y-c1->y)*(c2->y-c1->y);
 }
 
+// take the sqrt of me to get the actual distance ;) however that is much slower :D
+inline internal i32 GetDistance(const Position* c1, const Position* c2)
+{
+    return abs((i32) sqrt((c2->x-c1->x)*(c2->x-c1->x) +
+           (c2->y-c1->y)*(c2->y-c1->y)));
+}
+
 internal void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResult *result)
 {
     result->closest = NULL;
@@ -94,22 +101,35 @@ internal void GetNodeNeighbors(ASNeighborList neighbors, void *node, void *conte
 {
     Encounter* enc = (Encounter*) context;
     Position* pos = (Position*) node;
+    i32 gx, gy;
     //RPG_LOG("GetNodeNeighbors query node at %d,%d\n", pos->x, pos->y);
     if(pos->x >= 1) {   // add left
         //RPG_LOG("Adding left %d,%d\n", pos->x-1, pos->y);
-        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x-1][pos->y], 1.0f);
+        gx = pos->x-1;
+        gy = pos->y;
+        if(enc->grid[gx][gy] == NULL)   // check that the tile isn't occupied
+            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
     }
     if(pos->x <= RPG_GRID_W-2) {    // add right
         //RPG_LOG("Adding right %d,%d\n", pos->x+1, pos->y);
-        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x+1][pos->y], 1.0f);
+        gx = pos->x+1;
+        gy = pos->y;
+        if(enc->grid[gx][gy] == NULL)
+            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
     }
     if(pos->y >= 1) {   // add top
         //RPG_LOG("Adding top %d,%d\n", pos->x, pos->y-1);
-        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x][pos->y-1], 1.0f);
+        gx = pos->x;
+        gy = pos->y-1;
+        if(enc->grid[gx][gy] == NULL)
+            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
     }
     if(pos->y <= RPG_GRID_H-2) {   // add bottom
         //RPG_LOG("Adding bottom %d,%d\n", pos->x, pos->y+1);
-        ASNeighborListAdd(neighbors, &enc->nodeGrid[pos->x][pos->y+1], 1.0f);
+        gx = pos->x;
+        gy = pos->y+1;
+        if(enc->grid[gx][gy] == NULL)
+            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
     }
 }
 
@@ -120,7 +140,77 @@ internal float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
     float res = (float) fabs(sqrt(GetDistanceSquared(from, to)));
     //RPG_LOG("Returning distance heuristic (%d,%d --> %d,%d) %f\n", from->x, from->y, to->x, to->y, res);
     return res;
+}
 
+internal void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* attacker,
+                                                    Combatant* target, Position* result)
+{
+    Position *pos = &target->position;
+    i32 gx, gy;
+    // go through each sides, if occupied find distance and choose the largest
+    // this is faster than doing jamming them in a container and sorting :)
+    i32 mindist = INT32_MAX;
+    Position minpos = {-1, -1};
+
+    if(pos->x >= 1) {   // left
+        //RPG_LOG("Adding left %d,%d\n", pos->x-1, pos->y);
+        gx = pos->x-1;
+        gy = pos->y;
+        if(enc->grid[gx][gy] == NULL) {   // check that the tile isn't occupied
+            i32 dist = GetDistance(pos, &attacker->position);
+            if(dist < mindist) {
+                minpos.x = gx;
+                minpos.y = gy;
+                mindist = dist;
+            }
+        }
+    }
+    if(pos->x <= RPG_GRID_W-2) {    // right
+        //RPG_LOG("Adding right %d,%d\n", pos->x+1, pos->y);
+        gx = pos->x+1;
+        gy = pos->y;
+        if(enc->grid[gx][gy] == NULL) {
+            i32 dist = GetDistance(pos, &attacker->position);
+            if(dist < mindist) {
+                minpos.x = gx;
+                minpos.y = gy;
+                mindist = dist;
+            }
+        }
+    }
+    if(pos->y >= 1) {   // top
+        //RPG_LOG("Adding top %d,%d\n", pos->x, pos->y-1);
+        gx = pos->x;
+        gy = pos->y-1;
+        if(enc->grid[gx][gy] == NULL) {
+            i32 dist = GetDistance(pos, &attacker->position);
+            if(dist < mindist) {
+                minpos.x = gx;
+                minpos.y = gy;
+                mindist = dist;
+            }
+        }
+    }
+    if(pos->y <= RPG_GRID_H-2) {   // bottom
+        //RPG_LOG("Adding bottom %d,%d\n", pos->x, pos->y+1);
+        gx = pos->x;
+        gy = pos->y+1;
+        if(enc->grid[gx][gy] == NULL) {
+            i32 dist = GetDistance(pos, &attacker->position);
+            if(dist < mindist) {
+                minpos.x = gx;
+                minpos.y = gy;
+                mindist = dist;
+            }
+        }
+    }
+    if(mindist != INT32_MAX) {
+        result->x = minpos.x;
+        result->y = minpos.y;
+    } else {
+        result->x = INT32_MAX;
+        result->y = INT32_MAX;
+    }
 }
 
 internal void FindPathBetweenCombatants(Encounter* enc, Combatant *c1, Combatant *c2)
@@ -131,7 +221,8 @@ internal void FindPathBetweenCombatants(Encounter* enc, Combatant *c1, Combatant
     source.nodeNeighbors = GetNodeNeighbors;
     source.pathCostHeuristic = GetPathCostHeuristic;
     void *from = &enc->nodeGrid[c1->position.x][c1->position.y];
-    void *to = &enc->nodeGrid[c2->position.x][c2->position.y];
+    //void *to = &enc->nodeGrid[c2->position.x][c2->position.y];
+    void *to = &enc->nodeGrid[0][0];
     ASPath path = ASPathCreate(&source, enc, from, to);
     if(path) {
         RPG_LOG("A path was found between %s and %s (steps: %d)\n", c1->entity->name, c2->entity->name, ASPathGetCount(path));
@@ -249,8 +340,20 @@ internal u32 Action_BeginRound(Encounter* enc)
 /*
  * Default AI implementation
  */
+/*
+ * 1. Add attacks to unused attacks list
+ * 2. Find maximum range of any attack, in unused attack list
+ * 3. Find closest enemy
+ * 4. If no attacks can hit enemy, move closer
+ * 5. Perform attack
+ * 6. Add attack to used list
+ * 7. if no more attacks, end turn else goto 1
+ */
 internal Combatant* DefaultAI_OnSelectTarget(Encounter* enc, Combatant *combatant)
 {
+    Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
+    assert(attack != NULL);
+
     DistQueryResult result;
     FindClosestEnemy(enc, combatant, &result);
     if(result.closest) {
