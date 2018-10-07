@@ -86,7 +86,7 @@ set(GAME_SOURCE_FILES
         src/rpg/attack.c
         src/rpg/attack.h
         src/rpg/combat.c
-        src/rpg/combat.h src/util/list.c src/include/list.h)
+        src/rpg/combat.h src/util/list.c src/include/list.h src/renderer/renderer.c src/renderer/renderer.h src/renderer/opengl_renderer.c src/renderer/opengl_renderer.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

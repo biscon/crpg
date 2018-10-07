@@ -5,6 +5,7 @@
 #include "rpg/rpg.h"
 #include "rpg/combat.h"
 #include "rpg/rpg_log.h"
+#include "renderer/opengl_renderer.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -151,11 +152,13 @@ internal bool InitVideo()
     //glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    Render_InitOGLRenderer();
     return true;
 }
 
 internal void ShutdownVideo()
 {
+    Render_ShutdownOGLRenderer();
     if(Context != NULL)
         SDL_GL_DeleteContext(Context);
     if(Window != NULL)

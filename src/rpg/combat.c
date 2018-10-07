@@ -94,7 +94,7 @@ internal void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResu
         Combatant *cur = VECTOR_GET(enc->combatants, Combatant*, i);
         if(cur != c && c->team != cur->team) {  // if its not ourself and a different team
             i32 dist = abs((i32) sqrt(GetDistanceSquared(&c->position, &cur->position)));
-            RPG_LOG("Distance between %s and %s is %d\n", c->entity->name, cur->entity->name, dist);
+            //RPG_LOG("Distance between %s and %s is %d\n", c->entity->name, cur->entity->name, dist);
             // update result if its lower than the previous distance found O(n)
             if (dist < result->distance) {
                 result->distance = dist;
@@ -362,6 +362,7 @@ internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
 
     for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
         Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
+        c->hasMovedRound = false;
         i32 initiative = Dice_Roll("1d6");
         initiative += Entity_GetDEXBonus(c->entity);
         c->lastInitiativeRoll = initiative;
@@ -386,6 +387,19 @@ internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
 
 internal u32 Action_Attack(Encounter *enc, CombatEvent* event)
 {
+    Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
+    assert(c != NULL);
+    Combatant *target = event->target;
+    assert(target != NULL);
+    Attack* attack = event->attack;
+    assert(attack != NULL);
+    RPG_LOG("Combatant %s is attacking %s with %s\n", c->entity->name, target->entity->name, attack->name);
+
+    // decide next action
+    AIInterface *ai = c->aiInterface;
+    assert(ai != NULL);
+    ai->onDecideAction(enc, c);
+
     return 1000;
 }
 
@@ -394,6 +408,8 @@ internal u32 Action_Move(Encounter *enc, CombatEvent* event)
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
     assert(c->curPath != NULL);
+    // mark that combatant has moved this turn
+    c->hasMovedRound = true;
 
     Position* step = LIST_POP(c->curPath->stepList, Position*);
     if(step) {
@@ -408,8 +424,9 @@ internal u32 Action_Move(Encounter *enc, CombatEvent* event)
             RPG_LOG("Combatant %s has used up his moves\n", c->entity->name);
             DestroyPath(c->curPath);
             c->curPath = NULL;
-            CombatEvent next_event = {.action = Action_EndTurn};
-            PushCombatEvent(enc, &next_event);
+            AIInterface *ai = c->aiInterface;
+            assert(ai != NULL);
+            ai->onDecideAction(enc, c);
         } else {
             CombatEvent next_event = {.action = Action_Move};
             PushCombatEvent(enc, &next_event);
@@ -418,8 +435,9 @@ internal u32 Action_Move(Encounter *enc, CombatEvent* event)
         RPG_LOG("Combatant %s finished moving\n", c->entity->name);
         DestroyPath(c->curPath);
         c->curPath = NULL;
-        CombatEvent next_event = {.action = Action_EndTurn};
-        PushCombatEvent(enc, &next_event);
+        AIInterface *ai = c->aiInterface;
+        assert(ai != NULL);
+        ai->onDecideAction(enc, c);
     }
     return 1000;
 }
@@ -431,10 +449,10 @@ internal u32 Action_Move(Encounter *enc, CombatEvent* event)
  * 1. Add attacks to unused attacks list
  * 2. Find maximum range of any attack, in unused attack list
  * 3. Find closest enemy
- * 4. If no attacks can hit enemy, move closer
+ * 4. If no attacks can hit enemy, move closer (if not having already moved this round)
  * 5. Perform attack
  * 6. Add attack to used list
- * 7. if no more attacks, end turn else goto 1
+ * 7. if no more attacks, end turn else goto 2
  */
 
 internal Attack* FindMaxRangeAttack(Combatant* c)
@@ -456,24 +474,39 @@ internal Attack* FindMaxRangeAttack(Combatant* c)
 internal void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
 {
     Attack *attack = FindMaxRangeAttack(combatant);
+    if(attack == NULL) {
+        RPG_LOG("Combatant %s has used all its attacks\n", combatant->entity->name);
+        CombatEvent event = {.action = Action_EndTurn};
+        PushCombatEvent(enc, &event);
+        return;
+    }
     assert(attack != NULL);
     DistQueryResult result;
     FindClosestEnemy(enc, combatant, &result);
     if(result.closest) {
         Combatant* target = result.closest;
         // can we hit the closest enemy with any attack?
-                RPG_LOG("Comparing DISTANCE %d >= %d (attack: %s)\n", attack->range, result.distance, attack->name);
+        //RPG_LOG("Comparing DISTANCE %d >= %d (attack: %s)\n", attack->range, result.distance, attack->name);
         if(attack->range >= result.distance) {
             // push attack event & and add to used list
+            /*
             RPG_LOG("Combatant %s can hit enemy %s, performing attack %s\n",
                     combatant->entity->name,
                     target->entity->name,
                     attack->name);
-            CombatEvent event = {.action = Action_Attack, .attack = attack};
+            */
+            CombatEvent event = {.action = Action_Attack, .attack = attack, .target = target};
             LIST_REMOVE(combatant->attackList, attack);
             LIST_PUSH(combatant->usedAttackList, attack);
             PushCombatEvent(enc, &event);
         } else {
+            if(combatant->hasMovedRound) {
+                RPG_LOG("Combatant %s has moved this turn already, ending turn\n", combatant->entity->name);
+                CombatEvent event = {.action = Action_EndTurn};
+                PushCombatEvent(enc, &event);
+                return;
+            }
+
             RPG_LOG("Combatant %s can't hit enemy and must move closer.\n", combatant->entity->name);
             // create a path to the nearest enemy and move closer
             Position pos;
@@ -507,7 +540,7 @@ internal void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
 
 internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
 {
-
+    /*
     Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
     assert(attack != NULL);
     // do we have a ranged attack?
@@ -518,6 +551,7 @@ internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
     }
     CombatEvent event = {.action = Action_EndTurn};
     PushCombatEvent(enc, &event);
+    */
 }
 
 /*

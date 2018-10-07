@@ -65,6 +65,7 @@ struct Combatant {
     ListNode*           usedAttackList;
     i32                 movesPerTurn;
     Path*               curPath;
+    bool                hasMovedRound;
 };
 
 typedef struct {
@@ -84,6 +85,7 @@ typedef struct {
 struct CombatEvent {
     u32                 (*action)    (Encounter* enc, CombatEvent* event);
     Attack*             attack;
+    Combatant*          target;
 };
 
 struct CombatInterface {
