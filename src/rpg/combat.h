@@ -7,6 +7,7 @@
 
 #include "entity.h"
 #include <vector.h>
+#include <list.h>
 
 /*
     Combat algorithm
@@ -29,6 +30,7 @@ typedef struct CombatInterface CombatInterface;
 typedef struct AIInterface AIInterface;
 typedef struct Combatant Combatant;
 typedef struct Position Position;
+typedef struct Path Path;
 
 typedef enum {
                         ENC_PLAYER_TEAM,
@@ -52,13 +54,17 @@ typedef struct {
     i32 distance;
 } DistQueryResult;
 
+
 struct Combatant {
     Entity*             entity;
     Team                team;
     i32                 lastInitiativeRoll;
     AIInterface*        aiInterface;
-    Combatant*          target;
     Position            position;
+    ListNode*           attackList;
+    ListNode*           usedAttackList;
+    i32                 movesPerTurn;
+    Path*               curPath;
 };
 
 typedef struct {
@@ -76,7 +82,8 @@ typedef struct {
 } Encounter;
 
 struct CombatEvent {
-    u32                 (*combatEventAction)    (Encounter* enc);
+    u32                 (*action)    (Encounter* enc, CombatEvent* event);
+    Attack*             attack;
 };
 
 struct CombatInterface {
@@ -87,7 +94,7 @@ struct CombatInterface {
 };
 
 struct AIInterface {
-    Combatant*          (*onSelectTarget)       (Encounter* enc, Combatant *combatant);
+    void                (*onDecideAction)       (Encounter* enc, Combatant *combatant);
     void                (*onAttack)             (Encounter* enc, Combatant *combatant);
 };
 

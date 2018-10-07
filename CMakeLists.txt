@@ -42,6 +42,10 @@ set(CGLM_SOURCE_FILES
         src/util/cglm/vec4.c)
 
 set(UTIL_SOURCE_FILES
+        src/include/store.h
+        src/util/store.c
+        src/include/list.h
+        src/util/list.c
         src/util/vector.c
         src/include/vector.h
         src/include/hashmap.h
@@ -49,7 +53,7 @@ set(UTIL_SOURCE_FILES
         src/util/string_util.c
         src/util/string_util.h
         src/util/cJSON/cJSON.h
-        src/util/cJSON/cJSON.c)
+        src/util/cJSON/cJSON.c src/util/list.c src/include/list.h)
 
 set(GAME_SOURCE_FILES
         src/include/defs.h
@@ -82,7 +86,7 @@ set(GAME_SOURCE_FILES
         src/rpg/attack.c
         src/rpg/attack.h
         src/rpg/combat.c
-        src/rpg/combat.h)
+        src/rpg/combat.h src/util/list.c src/include/list.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

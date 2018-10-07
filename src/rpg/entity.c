@@ -116,7 +116,9 @@ internal void BuildMonsterEntityAttacks(Entity *entity)
         RPG_Log("Times = %d, name = %s\n", times, name);
         for(i32 u = 0; u < times; ++u) {
             Attack *a = calloc(1, sizeof(Attack));
-            Attack_Init(a, AT_MONSTER, name, parsed_rolls[j], false, 0, NULL);
+            // TODO all monster attacks are hardcoded to range 1,
+            // add ranged monster attacks such as spitting in the future
+            Attack_Init(a, AT_MONSTER, name, parsed_rolls[j], false, 1, NULL);
             entity->attacks[entity->attackCount] = a;
             entity->attackCount++;
         }

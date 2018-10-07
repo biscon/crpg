@@ -15,6 +15,17 @@
 #include "AStar.h"
 
 /*
+ * Internal structures
+ */
+
+struct Path {
+ ListNode*  stepList; // List of Position structs
+ i32        steps;
+ i32        movesLeft;
+};
+
+
+/*
  * Internal functions
  */
 internal i32 FindCombatantIndexByEntity(Encounter *enc, Entity* entity)
@@ -142,6 +153,8 @@ internal float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
     return res;
 }
 
+// TODO this only finds free tiles immediately around an enemy, to support moving partially
+// towards enemies in a turn it would be smarter to find an incomplete path with a-star
 internal void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* attacker,
                                                     Combatant* target, Position* result)
 {
@@ -153,53 +166,53 @@ internal void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* a
     Position minpos = {-1, -1};
 
     if(pos->x >= 1) {   // left
-        //RPG_LOG("Adding left %d,%d\n", pos->x-1, pos->y);
         gx = pos->x-1;
         gy = pos->y;
         if(enc->grid[gx][gy] == NULL) {   // check that the tile isn't occupied
-            i32 dist = GetDistance(pos, &attacker->position);
+            Position target_pos = {.x = gx, .y = gy};
+            i32 dist = GetDistance(&target_pos, &attacker->position);
+            //RPG_LOG("left %d,%d distance %d\n", gx, gy, dist);
             if(dist < mindist) {
-                minpos.x = gx;
-                minpos.y = gy;
+                minpos = target_pos;
                 mindist = dist;
             }
         }
     }
     if(pos->x <= RPG_GRID_W-2) {    // right
-        //RPG_LOG("Adding right %d,%d\n", pos->x+1, pos->y);
         gx = pos->x+1;
         gy = pos->y;
         if(enc->grid[gx][gy] == NULL) {
-            i32 dist = GetDistance(pos, &attacker->position);
+            Position target_pos = {.x = gx, .y = gy};
+            i32 dist = GetDistance(&target_pos, &attacker->position);
+            //RPG_LOG("right %d,%d distance %d\n", gx, gy, dist);
             if(dist < mindist) {
-                minpos.x = gx;
-                minpos.y = gy;
+                minpos = target_pos;
                 mindist = dist;
             }
         }
     }
     if(pos->y >= 1) {   // top
-        //RPG_LOG("Adding top %d,%d\n", pos->x, pos->y-1);
         gx = pos->x;
         gy = pos->y-1;
         if(enc->grid[gx][gy] == NULL) {
-            i32 dist = GetDistance(pos, &attacker->position);
+            Position target_pos = {.x = gx, .y = gy};
+            i32 dist = GetDistance(&target_pos, &attacker->position);
+            //RPG_LOG("top %d,%d distance %d\n", gx, gy, dist);
             if(dist < mindist) {
-                minpos.x = gx;
-                minpos.y = gy;
+                minpos = target_pos;
                 mindist = dist;
             }
         }
     }
     if(pos->y <= RPG_GRID_H-2) {   // bottom
-        //RPG_LOG("Adding bottom %d,%d\n", pos->x, pos->y+1);
         gx = pos->x;
         gy = pos->y+1;
         if(enc->grid[gx][gy] == NULL) {
-            i32 dist = GetDistance(pos, &attacker->position);
+            Position target_pos = {.x = gx, .y = gy};
+            i32 dist = GetDistance(&target_pos, &attacker->position);
+            //RPG_LOG("bottom %d,%d distance %d\n", gx, gy, dist);
             if(dist < mindist) {
-                minpos.x = gx;
-                minpos.y = gy;
+                minpos = target_pos;
                 mindist = dist;
             }
         }
@@ -213,47 +226,64 @@ internal void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* a
     }
 }
 
-internal void FindPathBetweenCombatants(Encounter* enc, Combatant *c1, Combatant *c2)
+internal Path* CreatePathBetweenPositions(Encounter *enc, Position *p1, Position *p2)
 {
     ASPathNodeSource source;
     memset(&source, 0, sizeof(ASPathNodeSource));
     source.nodeSize = sizeof(Position*);
     source.nodeNeighbors = GetNodeNeighbors;
     source.pathCostHeuristic = GetPathCostHeuristic;
-    void *from = &enc->nodeGrid[c1->position.x][c1->position.y];
-    //void *to = &enc->nodeGrid[c2->position.x][c2->position.y];
-    void *to = &enc->nodeGrid[0][0];
+    void *from = &enc->nodeGrid[p1->x][p1->y];
+    void *to = &enc->nodeGrid[p2->x][p2->y];
     ASPath path = ASPathCreate(&source, enc, from, to);
     if(path) {
-        RPG_LOG("A path was found between %s and %s (steps: %d)\n", c1->entity->name, c2->entity->name, ASPathGetCount(path));
-        for(i32 i = 0; i < ASPathGetCount(path); ++i) {
-            Position* node = (Position*) ASPathGetNode(path, (size_t) i);
-            RPG_LOG("\t\tStep %d:\t%d,%d\n", i, node->x, node->y);
+        RPG_LOG("A path was found between %d,%d and %d,%d (steps: %d)\n", p1->x, p1->y, p2->x, p2->y, ASPathGetCount(path));
+        Path *result = calloc(1, sizeof(Path));
+        result->steps = (i32) ASPathGetCount(path);
+        for(i32 i = result->steps-1; i > 0 ; i--) {
+            Position* oldnode = (Position*) ASPathGetNode(path, (size_t) i);
+            Position* newnode = calloc(1, sizeof(Position));
+            newnode->x = oldnode->x;
+            newnode->y = oldnode->y;
+            LIST_PUSH(result->stepList, newnode);
+            RPG_LOG("\t\tStep %d:\t%d,%d\n", i, newnode->x, newnode->y);
         }
         ASPathDestroy(path);
+        return result;
     } else {
         RPG_LOG("Pathfinding failed for reasons unknown :/\n");
     }
+    return NULL;
+}
 
+internal void DestroyPath(Path* path)
+{
+    ListNode* cur = path->stepList;
+    while(cur != NULL) {
+        free(cur->data);
+        cur = cur->next;
+    }
+    LIST_DESTROY(path->stepList);
+    free(path);
 }
 /*
  * Action implementations
  */
 
-internal u32 Action_BeginRound(Encounter* enc);
-internal u32 Action_BeginTurn(Encounter *enc);
+internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event);
+internal u32 Action_BeginTurn(Encounter *enc, CombatEvent* event);
 
-internal u32 Action_EndRound(Encounter* enc) {
+internal u32 Action_EndRound(Encounter* enc, CombatEvent* event) {
     RPG_LOG("Running Action_EndRound(), time is %d\n", enc->currentTime);
     if(enc->combatInterface->onEndRound)
         enc->combatInterface->onEndRound(enc);
 
-    CombatEvent event = {Action_BeginRound};
-    PushCombatEvent(enc, &event);
+    CombatEvent next_event = {.action = Action_BeginRound};
+    PushCombatEvent(enc, &next_event);
     return 1000;
 }
 
-internal u32 Action_EndTurn(Encounter *enc)
+internal u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
 {
     RPG_LOG("Running Action_EndTurn(), time is %d\n", enc->currentTime);
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
@@ -263,21 +293,26 @@ internal u32 Action_EndTurn(Encounter *enc)
     if(enc->combatInterface->onEndTurn)
         enc->combatInterface->onEndTurn(enc);
 
+
+    // destroy current combatants attack lists
+    LIST_DESTROY(c->attackList);
+    LIST_DESTROY(c->usedAttackList);
+
     enc->curCombatantId++;
     // if there are still combatants to process this turn queue another event
     if(enc->curCombatantId < VECTOR_SIZE(enc->combatants)) {
-        CombatEvent event = {Action_BeginTurn};
-        PushCombatEvent(enc, &event);
+        CombatEvent next_event = {.action = Action_BeginTurn};
+        PushCombatEvent(enc, &next_event);
     }
     else
     {
-        CombatEvent event = {Action_EndRound};
-        PushCombatEvent(enc, &event);
+        CombatEvent next_event = {.action = Action_EndRound};
+        PushCombatEvent(enc, &next_event);
     }
     return 1000;
 }
 
-internal u32 Action_BeginTurn(Encounter *enc) {
+internal u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
     RPG_LOG("Running Action_BeginTurn(), time is %d\n", enc->currentTime);
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
@@ -285,6 +320,16 @@ internal u32 Action_BeginTurn(Encounter *enc) {
     if (enc->combatInterface->onBeginTurn)
         enc->combatInterface->onBeginTurn(enc);
 
+    // Create attack list
+    for(i32 i = 0; i < c->entity->attackCount; ++i) {
+        LIST_PUSH(c->attackList, c->entity->attacks[i]);
+    }
+
+    ListNode *cur = c->attackList;
+    while(cur != NULL) {
+        RPG_LOG("\tAttack: %s\n", ((Attack*) cur->data)->name);
+        cur = cur->next;
+    }
     /*
     if(c->team == ENC_PLAYER_TEAM) {
         enc->state = ES_INPUT_WAIT;
@@ -292,21 +337,23 @@ internal u32 Action_BeginTurn(Encounter *enc) {
     } else { */
         AIInterface *ai = c->aiInterface;
         assert(ai != NULL);
-        c->target = ai->onSelectTarget(enc, c);
+        ai->onDecideAction(enc, c);
+        /*
         if(c->target) {
             RPG_LOG("Combatant %s selected target %s\n", c->entity->name, c->target->entity->name);
-            CombatEvent event = {Action_EndTurn};
-            PushCombatEvent(enc, &event);
+            CombatEvent next_event = {Action_EndTurn};
+            PushCombatEvent(enc, &next_event);
         } else {
             RPG_LOG("Combatant %s didn't select a target, ending turn.\n", c->entity->name);
-            CombatEvent event = {Action_EndTurn};
-            PushCombatEvent(enc, &event);
+            CombatEvent next_event = {Action_EndTurn};
+            PushCombatEvent(enc, &next_event);
         }
+         */
     //}
     return 1000;
 }
 
-internal u32 Action_BeginRound(Encounter* enc)
+internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
 {
     RPG_LOG("Running Action_BeginRound(), time is %d\n", enc->currentTime);
     enc->round++;
@@ -331,9 +378,49 @@ internal u32 Action_BeginRound(Encounter* enc)
     }
     enc->curCombatantId = 0;
 
-    CombatEvent event = {Action_BeginTurn};
-    PushCombatEvent(enc, &event);
+    CombatEvent next_event = {.action = Action_BeginTurn};
+    PushCombatEvent(enc, &next_event);
 
+    return 1000;
+}
+
+internal u32 Action_Attack(Encounter *enc, CombatEvent* event)
+{
+    return 1000;
+}
+
+internal u32 Action_Move(Encounter *enc, CombatEvent* event)
+{
+    Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
+    assert(c != NULL);
+    assert(c->curPath != NULL);
+
+    Position* step = LIST_POP(c->curPath->stepList, Position*);
+    if(step) {
+        RPG_LOG("Moving %s to %d,%d\n", c->entity->name, step->x, step->y);
+        assert(step->x >= 0 && step->x < RPG_GRID_W && step->y >= 0 && step->y < RPG_GRID_H);
+        c->position.x = step->x;
+        c->position.y = step->y;
+        enc->grid[step->x][step->y] = c;
+        c->curPath->movesLeft--;
+        free(step);
+        if(c->curPath->movesLeft == 0) {
+            RPG_LOG("Combatant %s has used up his moves\n", c->entity->name);
+            DestroyPath(c->curPath);
+            c->curPath = NULL;
+            CombatEvent next_event = {.action = Action_EndTurn};
+            PushCombatEvent(enc, &next_event);
+        } else {
+            CombatEvent next_event = {.action = Action_Move};
+            PushCombatEvent(enc, &next_event);
+        }
+    } else {
+        RPG_LOG("Combatant %s finished moving\n", c->entity->name);
+        DestroyPath(c->curPath);
+        c->curPath = NULL;
+        CombatEvent next_event = {.action = Action_EndTurn};
+        PushCombatEvent(enc, &next_event);
+    }
     return 1000;
 }
 
@@ -349,18 +436,73 @@ internal u32 Action_BeginRound(Encounter* enc)
  * 6. Add attack to used list
  * 7. if no more attacks, end turn else goto 1
  */
-internal Combatant* DefaultAI_OnSelectTarget(Encounter* enc, Combatant *combatant)
-{
-    Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
-    assert(attack != NULL);
 
+internal Attack* FindMaxRangeAttack(Combatant* c)
+{
+    ListNode* cur = c->attackList;
+    i32 value_of_max = INT32_MIN;
+    Attack* max_atk = NULL;
+    while(cur != NULL) {
+        Attack *attack = (Attack*) cur->data;
+        if(attack->range > value_of_max) {
+            value_of_max = attack->range;
+            max_atk = attack;
+        }
+        cur = cur->next;
+    }
+    return max_atk;
+}
+
+internal void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
+{
+    Attack *attack = FindMaxRangeAttack(combatant);
+    assert(attack != NULL);
     DistQueryResult result;
     FindClosestEnemy(enc, combatant, &result);
     if(result.closest) {
-        FindPathBetweenCombatants(enc, combatant, result.closest);
-        return result.closest;
+        Combatant* target = result.closest;
+        // can we hit the closest enemy with any attack?
+                RPG_LOG("Comparing DISTANCE %d >= %d (attack: %s)\n", attack->range, result.distance, attack->name);
+        if(attack->range >= result.distance) {
+            // push attack event & and add to used list
+            RPG_LOG("Combatant %s can hit enemy %s, performing attack %s\n",
+                    combatant->entity->name,
+                    target->entity->name,
+                    attack->name);
+            CombatEvent event = {.action = Action_Attack, .attack = attack};
+            LIST_REMOVE(combatant->attackList, attack);
+            LIST_PUSH(combatant->usedAttackList, attack);
+            PushCombatEvent(enc, &event);
+        } else {
+            RPG_LOG("Combatant %s can't hit enemy and must move closer.\n", combatant->entity->name);
+            // create a path to the nearest enemy and move closer
+            Position pos;
+            FindClosestAdjacentUnoccupiedPosition(enc, combatant, target, &pos);
+            if(pos.x != INT32_MAX && pos.y != INT32_MAX) {
+                RPG_LOG("Found closest unoccupied position to enemy %s at %d,%d\n", target->entity->name, pos.x, pos.y);
+                Path* path = CreatePathBetweenPositions(enc, &combatant->position, &pos);
+                if(path) {
+                    RPG_LOG("Path created to %d,%d, moving...\n", pos.x, pos.y);
+                    path->movesLeft = combatant->movesPerTurn;
+                    combatant->curPath = path;
+                    CombatEvent event = {.action = Action_Move};
+                    PushCombatEvent(enc, &event);
+                } else {
+                    RPG_LOG("Combatant %s can't path to %d,%d, ending turn\n", combatant->entity->name, pos.x, pos.y);
+                    CombatEvent event = {.action = Action_EndTurn};
+                    PushCombatEvent(enc, &event);
+                }
+            } else {
+                RPG_LOG("Combatant %s could not find a position to move to, ending turn\n", combatant->entity->name);
+                CombatEvent event = {.action = Action_EndTurn};
+                PushCombatEvent(enc, &event);
+            }
+        }
+    } else {
+        RPG_LOG("Combatant %s couldn't find an enemy to attack, ending turn\n", combatant->entity->name);
+        CombatEvent event = {.action = Action_EndTurn};
+        PushCombatEvent(enc, &event);
     }
-    return NULL;
 }
 
 internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
@@ -374,7 +516,7 @@ internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
     } else {
         RPG_LOG("Combatant %s can do a melee attack\n", combatant->entity->name);
     }
-    CombatEvent event = {Action_EndTurn};
+    CombatEvent event = {.action = Action_EndTurn};
     PushCombatEvent(enc, &event);
 }
 
@@ -417,7 +559,8 @@ void Encounter_AddEntity(Encounter *enc, Entity *entity, Team team)
     combatant->team = team;
     combatant->aiInterface = calloc(1, sizeof(AIInterface));
     combatant->aiInterface->onAttack = DefaultAI_OnAttack;
-    combatant->aiInterface->onSelectTarget = DefaultAI_OnSelectTarget;
+    combatant->aiInterface->onDecideAction = DefaultAI_OnDecideAction;
+    combatant->movesPerTurn = 10;
     VECTOR_ADD(enc->combatants, combatant);
 }
 
@@ -451,7 +594,7 @@ void Encounter_Update(Encounter *enc, u64 time_ms)
         CombatEvent event;
         PopCombatEvent(enc, &event);
         //RPG_LOG("Took combat event off stack, running action\n");
-        enc->timeToNextEvent = event.combatEventAction(enc);
+        enc->timeToNextEvent = event.action(enc, &event);
     }
 }
 
@@ -520,8 +663,7 @@ void Encounter_Start(Encounter *enc)
 
     enc->timeToNextEvent = 0;
     enc->round = 0;
-    CombatEvent event;
-    event.combatEventAction = &Action_BeginRound;
+    CombatEvent event = {.action = Action_BeginRound};
     PushCombatEvent(enc, &event);
     enc->state = ES_RUNNING;
 }
