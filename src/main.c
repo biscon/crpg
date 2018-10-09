@@ -152,7 +152,8 @@ internal bool InitVideo()
     //glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    Render_InitOGLRenderer();
+    glViewport(0, 0, ScreenWidth, ScreenHeight);
+    Render_InitOGLRenderer(ScreenWidth, ScreenHeight);
     return true;
 }
 
@@ -192,6 +193,9 @@ int main()
         SDL_Quit();
         return -1;
     }
+
+    RenderCmdBuffer renderBuffer;
+    Render_CreateCmdBuffer(&renderBuffer);
 
     // get info about the current display mode
     SDL_DisplayMode displayMode;
@@ -248,6 +252,7 @@ int main()
     RPG_LogEntity(monster);
 
     CombatInterface interface;
+    memset(&interface, 0, sizeof(CombatInterface));
     interface.onBeginRound = onBeginRound;
 
     Encounter *encounter = Encounter_Create(&interface);
@@ -255,6 +260,15 @@ int main()
     Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM);
     Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
     Encounter_Start(encounter);
+
+    RenderQuad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
+                        .left = 10, .top = 100, .right = 1270, .bottom = 610};
+
+    RenderQuad quad2 = {.color = {1.0f, 0.0f, 1.0f, 1.0f},
+            .left = 100, .top = 400, .right = 1000, .bottom = 700};
+
+    RenderQuad quad3 = {.color = {0.0f, 1.0f, 0.0f, 1.0f},
+            .left = 400, .top = 500, .right = 700, .bottom = 600};
 
     while(!ShouldQuit)
     {
@@ -281,7 +295,20 @@ int main()
         Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
         // render debug info
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
+        Render_ClearCmdBuffer(&renderBuffer);
+        Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
+
+        Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
+        Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
+        Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
+
+
+        Render_RenderCmdBufferOGL(&renderBuffer);
+        //exit(0);
+
         SDL_GL_SwapWindow(Window);
     }
     Encounter_Destroy(encounter);
@@ -291,6 +318,8 @@ int main()
     RPG_DestroyEntity(monster2);
 
     RPG_ShutdownContext(&rpgContext);
+
+    Render_DestroyCmdBuffer(&renderBuffer);
 
     ShutdownVideo();
     SDL_Quit();

@@ -38,16 +38,46 @@ void Render_PushClearCmd(RenderCmdBuffer *buf, vec4 color)
     buf->cmdOffset += sizeof(RenderCmdClear);
 }
 
-void Render_PushQuadsCmd(RenderCmdBuffer* buf, vec4 color, const float *verts, size_t count)
+/*
+ *  Expected quad format in verts:
+ *
+ *  Left (v2), color (v4)
+ *  Top, color
+ *  Right, color
+ *  Bottom, color
+ *
+ *  count: no of quads
+ */
+
+
+
+void Render_PushQuadsCmd(RenderCmdBuffer* buf, RenderQuad *quads, size_t count)
 {
     RenderCmdQuads cmd = {.type = RCMD_QUAD};
-    memcpy(&cmd.color, color, sizeof(vec4));
     cmd.offset = (size_t) (buf->quadVertOffset - buf->quadVerts);
-    cmd.count = count;
+    size_t byte_size = VERTS_PER_QUAD * sizeof(float);
+    cmd.vertexOffset = (cmd.offset) / (FLOATS_PER_VERTEX * sizeof(float));
+    cmd.vertexCount = count * VERTS_PER_QUAD;
 
-    size_t byte_size = count * (6* sizeof(float));
-    memcpy(buf->quadVertOffset, verts, byte_size);
-    buf->quadVertOffset += byte_size;
+    // loop through quads
+    RenderQuad* q = quads;
+    for(i32 i = 0; i < count; ++i) {
+
+        float vertices[] = {
+                // positions            // colors                                               // texture coords
+                q->right, q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 1.0f,   // top right
+                q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 0.0f,   // bottom right
+                q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 1.0f,   // top left
+
+                q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 0.0f,   // bottom right
+                q->left, q->bottom,     q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 0.0f,   // bottom left
+                q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 1.0f    // top left
+        };
+
+        memcpy(buf->quadVertOffset, &vertices, byte_size);
+        buf->quadVertOffset += byte_size;
+        q += sizeof(RenderQuad);
+    }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);

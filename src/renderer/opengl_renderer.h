@@ -7,7 +7,7 @@
 
 #include "renderer.h"
 
-void Render_InitOGLRenderer();
+void Render_InitOGLRenderer(i32 screenw, i32 screenh);
 void Render_ShutdownOGLRenderer();
 void Render_RenderCmdBufferOGL(RenderCmdBuffer* buf);
 
