@@ -153,13 +153,13 @@ internal bool InitVideo()
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glViewport(0, 0, ScreenWidth, ScreenHeight);
-    Render_InitOGLRenderer(ScreenWidth, ScreenHeight);
+    Render_InitRendererOGL(ScreenWidth, ScreenHeight);
     return true;
 }
 
 internal void ShutdownVideo()
 {
-    Render_ShutdownOGLRenderer();
+    Render_ShutdownRendererOGL();
     if(Context != NULL)
         SDL_GL_DeleteContext(Context);
     if(Window != NULL)

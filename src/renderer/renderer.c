@@ -41,11 +41,6 @@ void Render_PushClearCmd(RenderCmdBuffer *buf, vec4 color)
 /*
  *  Expected quad format in verts:
  *
- *  Left (v2), color (v4)
- *  Top, color
- *  Right, color
- *  Bottom, color
- *
  *  count: no of quads
  */
 

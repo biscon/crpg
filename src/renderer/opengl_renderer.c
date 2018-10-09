@@ -4,6 +4,7 @@
 
 #include <SDL_log.h>
 #include "opengl_renderer.h"
+#include "../util/lodepng.h"
 #include <glad.h>
 #include <cglm/cam.h>
 
@@ -150,7 +151,7 @@ internal GLuint CreateShaderProgram(const char* vertexsrc, const char* fragments
 }
 
 
-void Render_InitOGLRenderer(i32 screenw, i32 screenh) {
+void Render_InitRendererOGL(i32 screenw, i32 screenh) {
     screenWidth = screenw;
     screenHeight = screenh;
     //quadProgramID = CreateShaderProgram(quadVertexSource, quadFragmentSource);
@@ -184,7 +185,7 @@ void Render_InitOGLRenderer(i32 screenw, i32 screenh) {
     glEnableVertexAttribArray(2);
 }
 
-void Render_ShutdownOGLRenderer() {
+void Render_ShutdownRendererOGL() {
     glDeleteBuffers(1, &textQuadVBO);
     glDeleteVertexArrays(1, &textQuadVAO);
     glDeleteProgram(texQuadProgramID);
@@ -241,5 +242,69 @@ void Render_RenderCmdBufferOGL(RenderCmdBuffer *buf)
             }
         }
     }
+}
+
+bool Render_UploadTextureOGL(const char *filename, bool filtering, u32* texid) {
+    u32 error;
+    u8* image;
+    u32 width, height;
+    error = lodepng_decode32_file(&image, &width, &height, filename);
+    if(error) {
+        SDL_Log("error %u: %s\n", error, lodepng_error_text(error));
+        return false;
+    }
+
+    u32 tex = 0;
+    glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    // upload pixel data to gpu mem
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *) image);
+
+    // free image from sysmem
+    free(image);
+
+    // set wrap repeat
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    /*
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+     */
+    // nearest neighbour filtering
+    if(!filtering) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+    else
+    {
+        // anisotropic filtering
+        /*
+        float aniso = 16.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniso);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+        */
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        SDL_Log("UploadTextureOGL OpenGL error: %d", err);
+        return false;
+    }
+
+    *texid = tex;
+    return true;
+}
+
+void Render_DeleteTextureOGL(u32 *tex) {
+    glDeleteTextures(1, (GLuint*) &tex);
 }
 

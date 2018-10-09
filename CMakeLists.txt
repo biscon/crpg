@@ -53,7 +53,12 @@ set(UTIL_SOURCE_FILES
         src/util/string_util.c
         src/util/string_util.h
         src/util/cJSON/cJSON.h
-        src/util/cJSON/cJSON.c src/util/list.c src/include/list.h src/util/stb_rect_pack.h)
+        src/util/cJSON/cJSON.c
+        src/util/list.c
+        src/include/list.h
+        src/util/stb_rect_pack.h
+        src/util/lodepng.h
+        src/util/lodepng.c)
 
 set(GAME_SOURCE_FILES
         src/include/defs.h
