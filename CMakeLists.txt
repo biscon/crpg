@@ -56,7 +56,7 @@ set(UTIL_SOURCE_FILES
         src/include/list.h
         src/include/stb_rect_pack.h
         src/util/lodepng.h
-        src/util/lodepng.c)
+        src/util/lodepng.c src/util/math_util.c src/util/math_util.h)
 
 set(GAME_SOURCE_FILES
         src/include/defs.h
@@ -89,7 +89,15 @@ set(GAME_SOURCE_FILES
         src/rpg/attack.c
         src/rpg/attack.h
         src/rpg/combat.c
-        src/rpg/combat.h src/util/list.c src/include/list.h src/renderer/renderer.c src/renderer/renderer.h src/renderer/opengl_renderer.c src/renderer/opengl_renderer.h src/renderer/pixel_buffer.c src/renderer/pixel_buffer.h)
+        src/rpg/combat.h
+        src/util/list.c
+        src/include/list.h
+        src/renderer/renderer.c
+        src/renderer/renderer.h
+        src/renderer/opengl_renderer.c
+        src/renderer/opengl_renderer.h
+        src/renderer/pixel_buffer.c
+        src/renderer/pixel_buffer.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

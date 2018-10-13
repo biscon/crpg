@@ -4,9 +4,12 @@
 
 #include "dice.h"
 #include "rpg_log.h"
+#include "../util/math_util.h"
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+
+internal pcg32_random_t rngState;
 
 void Dice_Init()
 {
@@ -23,7 +26,8 @@ i32 Dice_Roll(const char *string) {
 
     for(i32 i = 0; i < no_rolls; ++i)
     {
-        i32 roll = (rand() % pips)+1;
+        i32 roll = (pcg32_random_r(&rngState) % pips)+1;
+        //i32 roll = (rand() % pips)+1;
         sum += roll;
     }
     sum += adds;

@@ -261,13 +261,13 @@ int main()
     Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
     Encounter_Start(encounter);
 
-    RenderQuad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
+    Quad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
                         .left = 10, .top = 100, .right = 1270, .bottom = 610};
 
-    RenderQuad quad2 = {.color = {1.0f, 0.0f, 1.0f, 1.0f},
+    Quad quad2 = {.color = {1.0f, 0.0f, 1.0f, 1.0f},
             .left = 100, .top = 400, .right = 1000, .bottom = 700};
 
-    RenderQuad quad3 = {.color = {0.0f, 1.0f, 0.0f, 1.0f},
+    Quad quad3 = {.color = {0.0f, 1.0f, 0.0f, 1.0f},
             .left = 400, .top = 500, .right = 700, .bottom = 600};
 
     while(!ShouldQuit)

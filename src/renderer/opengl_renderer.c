@@ -265,7 +265,6 @@ bool OGL_UploadTexture(PixelBuffer *pb, bool filtering, u32 *texid)
     // upload pixel data to gpu mem
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pb->width, pb->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *) pb->pixels);
 
-
     // set wrap repeat
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

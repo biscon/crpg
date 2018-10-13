@@ -14,6 +14,8 @@
 #define HASHTABLE_U64 u64
 #include "hashtable.h"
 #include "../util/lodepng.h"
+#include "opengl_renderer.h"
+#include "../util/math_util.h"
 
 void Render_CreateCmdBuffer(RenderCmdBuffer* buf)
 {
@@ -52,10 +54,7 @@ void Render_PushClearCmd(RenderCmdBuffer *buf, vec4 color)
  *
  *  count: no of quads
  */
-
-
-
-void Render_PushQuadsCmd(RenderCmdBuffer* buf, RenderQuad *quads, size_t count)
+void Render_PushQuadsCmd(RenderCmdBuffer* buf, Quad *quads, size_t count)
 {
     RenderCmdQuads cmd = {.type = RCMD_QUAD};
     cmd.offset = (size_t) (buf->quadVertOffset - buf->quadVerts);
@@ -64,7 +63,7 @@ void Render_PushQuadsCmd(RenderCmdBuffer* buf, RenderQuad *quads, size_t count)
     cmd.vertexCount = count * VERTS_PER_QUAD;
 
     // loop through quads
-    RenderQuad* q = quads;
+    Quad* q = quads;
     for(i32 i = 0; i < count; ++i) {
 
         float vertices[] = {
@@ -74,18 +73,102 @@ void Render_PushQuadsCmd(RenderCmdBuffer* buf, RenderQuad *quads, size_t count)
                 q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 1.0f,   // top left
 
                 q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 0.0f,   // bottom right
-                q->left, q->bottom,     q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 0.0f,   // bottom left
+                q->left,  q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 0.0f,   // bottom left
                 q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 1.0f    // top left
         };
 
         memcpy(buf->quadVertOffset, &vertices, byte_size);
         buf->quadVertOffset += byte_size;
-        q += sizeof(RenderQuad);
+        q += sizeof(Quad);
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);
 }
+
+/*
+ *  Expected quad format in verts:
+ *
+ *  count: no of quads
+ */
+void Render_PushTexturedQuadsCmd(RenderCmdBuffer* buf, u32 texid, Quad *quads, size_t count)
+{
+    RenderCmdQuads cmd = {.type = RCMD_TEX_QUAD, .texId = texid, .atlas = NULL};
+    cmd.offset = (size_t) (buf->quadVertOffset - buf->quadVerts);
+    size_t byte_size = VERTS_PER_QUAD * sizeof(float);
+    cmd.vertexOffset = (cmd.offset) / (FLOATS_PER_VERTEX * sizeof(float));
+    cmd.vertexCount = count * VERTS_PER_QUAD;
+
+    // loop through quads
+    Quad* q = quads;
+    for(i32 i = 0; i < count; ++i) {
+
+        float vertices[] = {
+                // positions            // colors                                               // texture coords
+                q->right, q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 1.0f,   // top right
+                q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 0.0f,   // bottom right
+                q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 1.0f,   // top left
+
+                q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    1.0f, 0.0f,   // bottom right
+                q->left,  q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 0.0f,   // bottom left
+                q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    0.0f, 1.0f    // top left
+        };
+
+        memcpy(buf->quadVertOffset, &vertices, byte_size);
+        buf->quadVertOffset += byte_size;
+        q += sizeof(Quad);
+    }
+
+    memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
+    buf->cmdOffset += sizeof(RenderCmdQuads);
+}
+
+
+
+/*
+ *  Expected quad format in verts:
+ *
+ *  count: no of quads
+ */
+void Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas, AtlasQuad *quads,
+                              size_t count)
+{
+    RenderCmdQuads cmd = {
+        .type = RCMD_TEX_QUAD_ATLAS,
+        .atlas = atlas,
+        .texId = atlas->textureId
+    };
+    cmd.offset = (size_t) (buf->quadVertOffset - buf->quadVerts);
+    size_t byte_size = VERTS_PER_QUAD * sizeof(float);
+    cmd.vertexOffset = (cmd.offset) / (FLOATS_PER_VERTEX * sizeof(float));
+    cmd.vertexCount = count * VERTS_PER_QUAD;
+
+    // loop through quads
+    AtlasQuad* q = quads;
+    for(i32 i = 0; i < count; ++i) {
+        TextureAtlasEntry* entry = hashtable_find(atlas->entryTable, q->atlasId);
+        FloatRect* uv = &entry->uvRect;
+        assert(entry != NULL);
+        float vertices[] = {
+                // positions            // colors                                               // texture coords
+                q->right, q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    uv->right, uv->top,         // right top
+                q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    uv->right, uv->bottom,      // right bottom
+                q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    uv->left, uv->top,          // left top
+
+                q->right, q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    uv->right, uv->bottom,      // right bottom
+                q->left,  q->bottom,    q->color[0], q->color[1],  q->color[2], q->color[3],    uv->left, uv->bottom,       // left bottom
+                q->left,  q->top,       q->color[0], q->color[1],  q->color[2], q->color[3],    uv->left, uv->top           // left top
+        };
+
+        memcpy(buf->quadVertOffset, &vertices, byte_size);
+        buf->quadVertOffset += byte_size;
+        q += sizeof(AtlasQuad);
+    }
+
+    memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
+    buf->cmdOffset += sizeof(RenderCmdQuads);
+}
+
 
 /*
  * TextureAtlas implementation (using stb_rect_pack, thanks Sean :)
@@ -109,7 +192,7 @@ void TextureAtlas_Destroy(TextureAtlas *atlas)
     STORE_DESTROY(atlas->rectStore);
 }
 
-i32 TextureAtlas_AddImage(TextureAtlas *atlas, const char *filename)
+u32 TextureAtlas_AddImage(TextureAtlas *atlas, const char *filename)
 {
     TextureAtlasEntry entry;
     memset(&entry, 0, sizeof(TextureAtlasEntry));
@@ -126,6 +209,7 @@ i32 TextureAtlas_AddImage(TextureAtlas *atlas, const char *filename)
 
 void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
 {
+    assert(atlas->isUploaded == false);
     stbrp_context context;
     memset(&context, 0, sizeof(stbrp_context));
 
@@ -141,6 +225,12 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
 
         cur_rect->w = (stbrp_coord) entry->pixelBuffer.width;
         cur_rect->h = (stbrp_coord) entry->pixelBuffer.height;
+
+        entry->uvRect.left = remapFloat(0, (float) atlas->width, 0, 1, (float) cur_rect->x);
+        entry->uvRect.right = remapFloat(0, (float) atlas->width, 0, 1, (float) (cur_rect->x + cur_rect->w));
+        // texture space flips y axis just to piss you off :)
+        entry->uvRect.top = remapFloat(0, (float) atlas->height, 0, 1, (float) cur_rect->y);
+        entry->uvRect.bottom = remapFloat(0, (float) atlas->height, 0, 1, (float) (cur_rect->y + cur_rect->h));
     }
 
     // TODO this might overflow the stack
@@ -167,8 +257,19 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
         PixelBuffer_Destroy(&entry->pixelBuffer);
     }
 
+    if(!OGL_UploadTexture(&buffer, false, &atlas->textureId)) {
+        SDL_Log("Texture atlas could not be uploaded");
+    }
+    atlas->isUploaded = true;
+    PixelBuffer_Destroy(&buffer);
+}
 
-
+void TextureAtlas_SetUVRect(TextureAtlas *atlas, u32 id, FloatRect *rect)
+{
+    assert(rect != NULL);
+    TextureAtlasEntry* entry = hashtable_find(atlas->entryTable, id);
+    assert(entry != NULL);
+    *rect = entry->uvRect;
 }
 
 
