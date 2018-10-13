@@ -48,15 +48,13 @@ set(UTIL_SOURCE_FILES
         src/util/list.c
         src/util/vector.c
         src/include/vector.h
-        src/include/hashmap.h
-        src/util/hashmap.c
         src/util/string_util.c
         src/util/string_util.h
         src/util/cJSON/cJSON.h
         src/util/cJSON/cJSON.c
         src/util/list.c
         src/include/list.h
-        src/util/stb_rect_pack.h
+        src/include/stb_rect_pack.h
         src/util/lodepng.h
         src/util/lodepng.c)
 
@@ -91,7 +89,7 @@ set(GAME_SOURCE_FILES
         src/rpg/attack.c
         src/rpg/attack.h
         src/rpg/combat.c
-        src/rpg/combat.h src/util/list.c src/include/list.h src/renderer/renderer.c src/renderer/renderer.h src/renderer/opengl_renderer.c src/renderer/opengl_renderer.h)
+        src/rpg/combat.h src/util/list.c src/include/list.h src/renderer/renderer.c src/renderer/renderer.h src/renderer/opengl_renderer.c src/renderer/opengl_renderer.h src/renderer/pixel_buffer.c src/renderer/pixel_buffer.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

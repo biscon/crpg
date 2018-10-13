@@ -151,7 +151,7 @@ internal GLuint CreateShaderProgram(const char* vertexsrc, const char* fragments
 }
 
 
-void Render_InitRendererOGL(i32 screenw, i32 screenh) {
+void OGL_InitRenderer(i32 screenw, i32 screenh) {
     screenWidth = screenw;
     screenHeight = screenh;
     //quadProgramID = CreateShaderProgram(quadVertexSource, quadFragmentSource);
@@ -185,14 +185,14 @@ void Render_InitRendererOGL(i32 screenw, i32 screenh) {
     glEnableVertexAttribArray(2);
 }
 
-void Render_ShutdownRendererOGL() {
+void OGL_ShutdownRenderer() {
     glDeleteBuffers(1, &textQuadVBO);
     glDeleteVertexArrays(1, &textQuadVAO);
     glDeleteProgram(texQuadProgramID);
     //glDeleteProgram(quadProgramID);
 }
 
-void Render_RenderCmdBufferOGL(RenderCmdBuffer *buf)
+void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
 {
     glUseProgram(texQuadProgramID);
 
@@ -244,29 +244,29 @@ void Render_RenderCmdBufferOGL(RenderCmdBuffer *buf)
     }
 }
 
-bool Render_UploadTextureOGL(const char *filename, bool filtering, u32* texid) {
-    u32 error;
-    u8* image;
-    u32 width, height;
-    error = lodepng_decode32_file(&image, &width, &height, filename);
-    if(error) {
-        SDL_Log("error %u: %s\n", error, lodepng_error_text(error));
+bool OGL_UploadPNGTexture(const char *filename, bool filtering, u32 *texid) {
+    PixelBuffer pb;
+    if(!PixelBuffer_CreateFromPNG(&pb, filename)) {
+        SDL_Log("Error loading png %s", filename);
         return false;
     }
+    bool res = OGL_UploadTexture(&pb, filtering, texid);
+    PixelBuffer_Destroy(&pb);
+    return res;
+}
 
+bool OGL_UploadTexture(PixelBuffer *pb, bool filtering, u32 *texid)
+{
     u32 tex = 0;
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
 
     // upload pixel data to gpu mem
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *) image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pb->width, pb->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *) pb->pixels);
 
-    // free image from sysmem
-    free(image);
 
     // set wrap repeat
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -304,7 +304,8 @@ bool Render_UploadTextureOGL(const char *filename, bool filtering, u32* texid) {
     return true;
 }
 
-void Render_DeleteTextureOGL(u32 *tex) {
+void OGL_DeleteTexture(u32 *tex) {
     glDeleteTextures(1, (GLuint*) &tex);
 }
+
 

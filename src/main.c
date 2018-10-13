@@ -153,13 +153,13 @@ internal bool InitVideo()
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glViewport(0, 0, ScreenWidth, ScreenHeight);
-    Render_InitRendererOGL(ScreenWidth, ScreenHeight);
+    OGL_InitRenderer(ScreenWidth, ScreenHeight);
     return true;
 }
 
 internal void ShutdownVideo()
 {
-    Render_ShutdownRendererOGL();
+    OGL_ShutdownRenderer();
     if(Context != NULL)
         SDL_GL_DeleteContext(Context);
     if(Window != NULL)
@@ -306,7 +306,7 @@ int main()
         Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
 
 
-        Render_RenderCmdBufferOGL(&renderBuffer);
+        OGL_RenderCmdBuffer(&renderBuffer);
         //exit(0);
 
         SDL_GL_SwapWindow(Window);

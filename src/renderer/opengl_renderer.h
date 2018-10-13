@@ -7,10 +7,11 @@
 
 #include "renderer.h"
 
-void Render_InitRendererOGL(i32 screenw, i32 screenh);
-void Render_ShutdownRendererOGL();
-void Render_RenderCmdBufferOGL(RenderCmdBuffer* buf);
-bool Render_UploadTextureOGL(const char* filename, bool filtering, u32* tex);
-void Render_DeleteTextureOGL(u32 *tex);
+void OGL_InitRenderer(i32 screenw, i32 screenh);
+void OGL_ShutdownRenderer();
+void OGL_RenderCmdBuffer(RenderCmdBuffer *buf);
+bool OGL_UploadTexture(PixelBuffer *pb, bool filtering, u32 *tex);
+bool OGL_UploadPNGTexture(const char *filename, bool filtering, u32 *tex);
+void OGL_DeleteTexture(u32 *tex);
 
 #endif //GAME_OPENGL_RENDERER_H

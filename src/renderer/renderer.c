@@ -6,6 +6,15 @@
 #include <SDL_log.h>
 #include "renderer.h"
 
+#define STB_RECT_PACK_IMPLEMENTATION
+#include "stb_rect_pack.h"
+
+#define HASHTABLE_IMPLEMENTATION
+#define HASHTABLE_U32 u32
+#define HASHTABLE_U64 u64
+#include "hashtable.h"
+#include "../util/lodepng.h"
+
 void Render_CreateCmdBuffer(RenderCmdBuffer* buf)
 {
     buf->commands = calloc(1, RENDERER_CMD_BUF_SIZE);
@@ -76,6 +85,90 @@ void Render_PushQuadsCmd(RenderCmdBuffer* buf, RenderQuad *quads, size_t count)
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);
+}
+
+/*
+ * TextureAtlas implementation (using stb_rect_pack, thanks Sean :)
+ */
+
+void TextureAtlas_Create(TextureAtlas *atlas, i32 width, i32 height)
+{
+    atlas->noRects = 0;
+    atlas->width = width;
+    atlas->height = height;
+    atlas->nextEntryId = 1;
+    atlas->entryTable = calloc(1, sizeof(hashtable_t));
+    hashtable_init(atlas->entryTable, sizeof(TextureAtlasEntry), 256, NULL);
+    STORE_INIT(atlas->rectStore, sizeof(stbrp_rect));
+}
+
+void TextureAtlas_Destroy(TextureAtlas *atlas)
+{
+    hashtable_term(atlas->entryTable);
+    free(atlas->entryTable);
+    STORE_DESTROY(atlas->rectStore);
+}
+
+i32 TextureAtlas_AddImage(TextureAtlas *atlas, const char *filename)
+{
+    TextureAtlasEntry entry;
+    memset(&entry, 0, sizeof(TextureAtlasEntry));
+    strncpy((void *) &(entry.filename), filename, sizeof(entry.filename));
+    entry.id = atlas->nextEntryId++;
+    hashtable_insert(atlas->entryTable, (HASHTABLE_U64) entry.id, &entry);
+    stbrp_rect rect;
+    memset(&rect, 0, sizeof(stbrp_rect));
+    rect.id = entry.id;
+    STORE_PUSHBACK(atlas->rectStore, &rect);
+    atlas->noRects++;
+    return entry.id;
+}
+
+void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
+{
+    stbrp_context context;
+    memset(&context, 0, sizeof(stbrp_context));
+
+    for(u32 i = 0; i < atlas->rectStore.noItems; ++i) {
+        stbrp_rect* cur_rect = STORE_GET_AT(atlas->rectStore, i);
+        assert(cur_rect != NULL);
+        TextureAtlasEntry* entry = hashtable_find(atlas->entryTable, (u32) cur_rect->id);
+        assert(entry != NULL);
+        if(!PixelBuffer_CreateFromPNG(&entry->pixelBuffer, entry->filename)) {
+            SDL_Log("Error loading png %s", entry->filename);
+            continue;
+        }
+
+        cur_rect->w = (stbrp_coord) entry->pixelBuffer.width;
+        cur_rect->h = (stbrp_coord) entry->pixelBuffer.height;
+    }
+
+    // TODO this might overflow the stack
+    i32 nodeCount = atlas->width*2;
+    struct stbrp_node nodes[nodeCount];
+
+    stbrp_init_target(&context, atlas->width, atlas->height, nodes, nodeCount);
+    stbrp_pack_rects(&context, hashtable_items(atlas->entryTable), atlas->rectStore.noItems);
+    stbrp_rect *rects = (stbrp_rect*) hashtable_items(atlas->entryTable);
+    PixelBuffer buffer;
+    PixelBuffer_Create(&buffer, (u32) atlas->width, (u32) atlas->height);
+    for (u32 i = 0; i < atlas->noRects; ++i)
+    {
+        SDL_Log("rect %i (%hu,%hu) was_packed=%i", rects[i].id, rects[i].x, rects[i].y, rects[i].was_packed);
+        stbrp_rect* cur_rect = STORE_GET_AT(atlas->rectStore, i);
+        assert(cur_rect != NULL);
+        TextureAtlasEntry* entry = hashtable_find(atlas->entryTable, (u32) cur_rect->id);
+        assert(entry != NULL);
+
+
+        PixelBuffer_SimpleBlit(&entry->pixelBuffer, (uvec4) {0, 0, entry->pixelBuffer.width,
+                                                             entry->pixelBuffer.height},
+                                &buffer, (uvec2) {cur_rect->x, cur_rect->y});
+        PixelBuffer_Destroy(&entry->pixelBuffer);
+    }
+
+
+
 }
 
 
