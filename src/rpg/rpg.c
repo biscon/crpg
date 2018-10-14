@@ -101,6 +101,7 @@ void RPG_ShutdownContext(RPGContext *context)
     RPG_LOG("Shutting down context\n");
     for(i32 i = 0; i < context->entityClassCount; ++i) {
         EntityClass_Free(context->entityClasses[i]);
+        free(context->entityClasses[i]);
     }
 
     for(i32 i = 0; i < context->armorTemplateCount; ++i) {
@@ -192,22 +193,7 @@ Entity *RPG_CreateMonsterFromTemplate(RPGContext *context, MonsterTemplate *temp
 
 void RPG_DestroyEntity(Entity *entity)
 {
-    switch(entity->type) {
-        case ET_CHARACTER: {
-            if(entity->mainWeapon)
-                Weapon_Destroy(entity->mainWeapon);
-            if(entity->offWeapon)
-                Weapon_Destroy(entity->offWeapon);
-            if(entity->shield)
-                Armor_Destroy(entity->shield);
-            if(entity->armor)
-                Armor_Destroy(entity->armor);
-            break;
-        }
-        case ET_MONSTER: {
-            break;
-        }
-    }
+    Entity_Destroy(entity);
     free(entity);
 }
 

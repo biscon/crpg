@@ -434,3 +434,26 @@ Attack* Entity_GetMaxRangedAttack(Entity *entity) {
     }
     return NULL;
 }
+
+void Entity_Destroy(Entity *entity)
+{
+    if(entity->attackCount > 0) {
+        ClearEntityAttacks(entity);
+    }
+    switch(entity->type) {
+        case ET_CHARACTER: {
+            if(entity->mainWeapon)
+                Weapon_Destroy(entity->mainWeapon);
+            if(entity->offWeapon)
+                Weapon_Destroy(entity->offWeapon);
+            if(entity->shield)
+                Armor_Destroy(entity->shield);
+            if(entity->armor)
+                Armor_Destroy(entity->armor);
+            break;
+        }
+        case ET_MONSTER: {
+            break;
+        }
+    }
+}

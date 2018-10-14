@@ -47,6 +47,7 @@ typedef struct
 } Entity;
 
 bool    Entity_Init(Entity *entity, EntityType type, i32 level, const char* name, EntityClass *entityClass, MonsterTemplate* template);
+void    Entity_Destroy(Entity* entity);
 void    Entity_GetHitDice(Entity *entity, char* hitdice, size_t size);
 i32     Entity_GetAttackBonus(Entity *entity);
 void    Entity_IncreaseLevel(Entity *entity);
