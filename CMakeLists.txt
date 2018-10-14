@@ -22,7 +22,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../")
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(Freetype REQUIRED)
-include_directories(${SDL2_INCLUDE_DIR} ${GLM_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/include)
+include_directories(${SDL2_INCLUDE_DIR} ${GLM_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/include)
+#message(0, ${FREETYPE_INCLUDE_DIRS})
 
 set(CGLM_SOURCE_FILES
         src/util/cglm/affine.c
@@ -97,8 +98,8 @@ set(GAME_SOURCE_FILES
         src/renderer/opengl_renderer.c
         src/renderer/opengl_renderer.h
         src/renderer/pixel_buffer.c
-        src/renderer/pixel_buffer.h)
+        src/renderer/pixel_buffer.h src/renderer/font.c src/renderer/font.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 
-target_link_libraries(game m ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} ${SDL2_LIBRARY})
+target_link_libraries(game m ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${FREETYPE_LIBRARIES})

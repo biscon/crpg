@@ -19,7 +19,7 @@
 #include "armor.h"
 #include "attack.h"
 
-internal void CharacterRollStartingMaxHP(Entity *entity)
+INTERNAL void CharacterRollStartingMaxHP(Entity *entity)
 {
     const char* hitdice = EntityClass_GetHitDice(entity->entityClass, entity->level);
 #ifdef DEBUG
@@ -35,7 +35,7 @@ internal void CharacterRollStartingMaxHP(Entity *entity)
     entity->maxHP = max_hp;
 }
 
-internal void MonsterRollStartingMaxHP(Entity *entity)
+INTERNAL void MonsterRollStartingMaxHP(Entity *entity)
 {
     i32 max_hp = 0;
     char hitdice[RPG_DICE_STR_SIZE];
@@ -50,7 +50,7 @@ internal void MonsterRollStartingMaxHP(Entity *entity)
     entity->maxHP = max_hp;
 }
 
-internal void ClearEntityAttacks(Entity *entity)
+INTERNAL void ClearEntityAttacks(Entity *entity)
 {
     if(entity->attackCount > 0) {
         for(i32 i = 0; i < entity->attackCount; ++i) {
@@ -62,7 +62,7 @@ internal void ClearEntityAttacks(Entity *entity)
 }
 
 // TODO break this up into subfunctions parsing attacks and damage rolls seperately to improve readability
-internal void BuildMonsterEntityAttacks(Entity *entity)
+INTERNAL void BuildMonsterEntityAttacks(Entity *entity)
 {
     assert(entity->type == ET_MONSTER);
     assert(entity->monsterTemplate != NULL);
@@ -139,7 +139,7 @@ internal void BuildMonsterEntityAttacks(Entity *entity)
     }
 }
 
-internal void BuildCharacterEntityAttacks(Entity *entity)
+INTERNAL void BuildCharacterEntityAttacks(Entity *entity)
 {
     // character is unarmed
     if(entity->offWeapon == NULL && entity->mainWeapon == NULL) {
@@ -180,7 +180,7 @@ internal void BuildCharacterEntityAttacks(Entity *entity)
     }
 }
 
-internal void RebuildEntityAttacks(Entity *entity)
+INTERNAL void RebuildEntityAttacks(Entity *entity)
 {
     ClearEntityAttacks(entity);
     if(entity->type == ET_CHARACTER) {
@@ -283,7 +283,7 @@ i32 Entity_GetAttackBonus(Entity *entity) {
     return 0;
 }
 
-internal void RollLevelUpMaxHPBonus(Entity *entity)
+INTERNAL void RollLevelUpMaxHPBonus(Entity *entity)
 {
     const char* hitdice = EntityClass_GetHitDice(entity->entityClass, entity->level);
 #ifdef DEBUG

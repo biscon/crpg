@@ -6,7 +6,7 @@
 #include <malloc.h>
 #include "entity_class.h"
 
-internal void AddLevelRow(Vector *table, i32 level, i32 minxp, i32 maxxp, const char* hitdice)
+INTERNAL void AddLevelRow(Vector *table, i32 level, i32 minxp, i32 maxxp, const char* hitdice)
 {
     LevelRow *row = calloc(1, sizeof(LevelRow));
     row->level = level;

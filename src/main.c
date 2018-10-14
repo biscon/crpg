@@ -30,7 +30,7 @@ double GetTime() {
 
 // Internal functions ------------------------------------------------------------------------------
 
-internal void HandleKeyboardEvent(const SDL_Event *event)
+INTERNAL void HandleKeyboardEvent(const SDL_Event *event)
 {
     switch( event->type ) {
         case SDL_KEYDOWN: {
@@ -47,7 +47,7 @@ internal void HandleKeyboardEvent(const SDL_Event *event)
 }
 
 
-internal void HandleMouseEvent(const SDL_Event *event)
+INTERNAL void HandleMouseEvent(const SDL_Event *event)
 {
     switch( event->type ) {
         case SDL_MOUSEMOTION: {
@@ -60,7 +60,7 @@ internal void HandleMouseEvent(const SDL_Event *event)
     }
 }
 
-internal void HandleWindowEvent(const SDL_Event *event)
+INTERNAL void HandleWindowEvent(const SDL_Event *event)
 {
     switch( event->window.event ) {
         case SDL_WINDOWEVENT_SIZE_CHANGED: {
@@ -87,7 +87,7 @@ internal void HandleWindowEvent(const SDL_Event *event)
     }
 }
 
-internal void UpdateInput() {
+INTERNAL void UpdateInput() {
     //Handle events on queue
     SDL_Event e;
     while( SDL_PollEvent( &e ) != 0 )
@@ -111,7 +111,7 @@ internal void UpdateInput() {
     }
 }
 
-internal bool InitVideo()
+INTERNAL bool InitVideo()
 {
     // request a GL Context 3.3 core profile
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -157,7 +157,7 @@ internal bool InitVideo()
     return true;
 }
 
-internal void ShutdownVideo()
+INTERNAL void ShutdownVideo()
 {
     OGL_ShutdownRenderer();
     if(Context != NULL)
@@ -169,7 +169,7 @@ internal void ShutdownVideo()
 /**
  * Test combat interface
  */
-internal void onBeginRound(Encounter* enc)
+INTERNAL void onBeginRound(Encounter* enc)
 {
     RPG_LOG("\nStarting round %d ------------------------------------------\n", enc->round);
 }
@@ -272,9 +272,9 @@ int main()
 
 
     TextureAtlas atlas;
-    TextureAtlas_Create(&atlas, 4096, 4096);
-    u32 tex1 = TextureAtlas_AddImage(&atlas, "assets/checker.png");
-    u32 tex2 = TextureAtlas_AddImage(&atlas, "assets/brick.png");
+    TextureAtlas_Create(&atlas, 4096, 4096, PBF_RGBA);
+    u32 tex1 = TextureAtlas_AddImageFromPNG(&atlas, "assets/checker.png");
+    u32 tex2 = TextureAtlas_AddImageFromPNG(&atlas, "assets/brick.png");
     TextureAtlas_PackAndUpload(&atlas);
 
     AtlasQuad atlasquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex1,

@@ -1567,7 +1567,7 @@ For decoding:
 state.decoder.zlibsettings.ignore_adler32: ignore ADLER32 checksums
 state.decoder.zlibsettings.custom_...: use custom inflate function
 state.decoder.ignore_crc: ignore CRC checksums
-state.decoder.color_convert: convert internal PNG color to chosen one
+state.decoder.color_convert: convert INTERNAL PNG color to chosen one
 state.decoder.read_text_chunks: whether to read in text metadata chunks
 state.decoder.remember_unknown_chunks: whether to read in unknown chunks
 state.info_raw.colortype: desired color type for decoded image
@@ -1629,7 +1629,7 @@ symbol.
 *) 27 okt 2012: Tweaks in text chunk keyword length error handling.
 *) 8 okt 2012 (!): Added new filter strategy (entropy) and new auto color mode.
     (no palette). Better deflate tree encoding. New compression tweak settings.
-    Faster color conversions while decoding. Some internal cleanups.
+    Faster color conversions while decoding. Some INTERNAL cleanups.
 *) 23 sep 2012: Reduced warnings in Visual Studio a little bit.
 *) 1 sep 2012 (!): Removed #define's for giving custom (de)compression functions
     and made it work with function pointers instead.

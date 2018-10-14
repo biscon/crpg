@@ -28,7 +28,7 @@ struct Path {
 /*
  * Internal functions
  */
-internal i32 FindCombatantIndexByEntity(Encounter *enc, Entity* entity)
+INTERNAL i32 FindCombatantIndexByEntity(Encounter *enc, Entity* entity)
 {
     for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
         Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
@@ -38,7 +38,7 @@ internal i32 FindCombatantIndexByEntity(Encounter *enc, Entity* entity)
     return -1;
 }
 
-internal void PushCombatEvent(Encounter* enc, const CombatEvent* event)
+INTERNAL void PushCombatEvent(Encounter* enc, const CombatEvent* event)
 {
     if(enc->eventStackTop+1 >= RPG_COMBAT_EVENT_STACK_SIZE) {
         RPG_LOG("Combat event stack full, refusing event\n");
@@ -48,7 +48,7 @@ internal void PushCombatEvent(Encounter* enc, const CombatEvent* event)
     memcpy(((void *) enc->eventStack)+(enc->eventStackTop* sizeof(CombatEvent)), event, sizeof(CombatEvent));
 }
 
-internal bool PopCombatEvent(Encounter* enc, CombatEvent *dst_event)
+INTERNAL bool PopCombatEvent(Encounter* enc, CombatEvent *dst_event)
 {
     if(enc->eventStackTop < 0) {
         return false;
@@ -58,7 +58,7 @@ internal bool PopCombatEvent(Encounter* enc, CombatEvent *dst_event)
     return true;
 }
 
-internal i32 InitiativeSortComparator(const void *p1, const void *p2)
+INTERNAL i32 InitiativeSortComparator(const void *p1, const void *p2)
 {
     // this is a bit fudged because our vector stores void** (and you cannot dereference void)
     const Combatant *c1 = *(Combatant**) p1;
@@ -73,20 +73,20 @@ internal i32 InitiativeSortComparator(const void *p1, const void *p2)
 }
 
 // take the sqrt of me to get the actual distance ;) however that is much slower :D
-inline internal i32 GetDistanceSquared(const Position* c1, const Position* c2)
+inline INTERNAL i32 GetDistanceSquared(const Position* c1, const Position* c2)
 {
     return (c2->x-c1->x)*(c2->x-c1->x) +
            (c2->y-c1->y)*(c2->y-c1->y);
 }
 
 // take the sqrt of me to get the actual distance ;) however that is much slower :D
-inline internal i32 GetDistance(const Position* c1, const Position* c2)
+inline INTERNAL i32 GetDistance(const Position* c1, const Position* c2)
 {
     return abs((i32) sqrt((c2->x-c1->x)*(c2->x-c1->x) +
            (c2->y-c1->y)*(c2->y-c1->y)));
 }
 
-internal void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResult *result)
+INTERNAL void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResult *result)
 {
     result->closest = NULL;
     result->distance = INT32_MAX;
@@ -108,7 +108,7 @@ internal void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResu
  * Pathfinding
  * If introducing diagonals remember to set edge coast to 1.4f
  */
-internal void GetNodeNeighbors(ASNeighborList neighbors, void *node, void *context)
+INTERNAL void GetNodeNeighbors(ASNeighborList neighbors, void *node, void *context)
 {
     Encounter* enc = (Encounter*) context;
     Position* pos = (Position*) node;
@@ -144,7 +144,7 @@ internal void GetNodeNeighbors(ASNeighborList neighbors, void *node, void *conte
     }
 }
 
-internal float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
+INTERNAL float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
 {
     Position* from = (Position*) fromNode;
     Position* to = (Position*) toNode;
@@ -155,7 +155,7 @@ internal float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
 
 // TODO this only finds free tiles immediately around an enemy, to support moving partially
 // towards enemies in a turn it would be smarter to find an incomplete path with a-star
-internal void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* attacker,
+INTERNAL void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* attacker,
                                                     Combatant* target, Position* result)
 {
     Position *pos = &target->position;
@@ -226,7 +226,7 @@ internal void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* a
     }
 }
 
-internal Path* CreatePathBetweenPositions(Encounter *enc, Position *p1, Position *p2)
+INTERNAL Path* CreatePathBetweenPositions(Encounter *enc, Position *p1, Position *p2)
 {
     ASPathNodeSource source;
     memset(&source, 0, sizeof(ASPathNodeSource));
@@ -256,7 +256,7 @@ internal Path* CreatePathBetweenPositions(Encounter *enc, Position *p1, Position
     return NULL;
 }
 
-internal void DestroyPath(Path* path)
+INTERNAL void DestroyPath(Path* path)
 {
     ListNode* cur = path->stepList;
     while(cur != NULL) {
@@ -270,10 +270,10 @@ internal void DestroyPath(Path* path)
  * Action implementations
  */
 
-internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event);
-internal u32 Action_BeginTurn(Encounter *enc, CombatEvent* event);
+INTERNAL u32 Action_BeginRound(Encounter* enc, CombatEvent* event);
+INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event);
 
-internal u32 Action_EndRound(Encounter* enc, CombatEvent* event) {
+INTERNAL u32 Action_EndRound(Encounter* enc, CombatEvent* event) {
     RPG_LOG("Running Action_EndRound(), time is %d\n", enc->currentTime);
     if(enc->combatInterface->onEndRound)
         enc->combatInterface->onEndRound(enc);
@@ -283,7 +283,7 @@ internal u32 Action_EndRound(Encounter* enc, CombatEvent* event) {
     return 1000;
 }
 
-internal u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
+INTERNAL u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
 {
     RPG_LOG("Running Action_EndTurn(), time is %d\n", enc->currentTime);
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
@@ -312,7 +312,7 @@ internal u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
     return 1000;
 }
 
-internal u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
+INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
     RPG_LOG("Running Action_BeginTurn(), time is %d\n", enc->currentTime);
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
@@ -353,7 +353,7 @@ internal u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
     return 1000;
 }
 
-internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
+INTERNAL u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
 {
     RPG_LOG("Running Action_BeginRound(), time is %d\n", enc->currentTime);
     enc->round++;
@@ -385,7 +385,7 @@ internal u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
     return 1000;
 }
 
-internal u32 Action_Attack(Encounter *enc, CombatEvent* event)
+INTERNAL u32 Action_Attack(Encounter *enc, CombatEvent* event)
 {
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
@@ -403,7 +403,7 @@ internal u32 Action_Attack(Encounter *enc, CombatEvent* event)
     return 1000;
 }
 
-internal u32 Action_Move(Encounter *enc, CombatEvent* event)
+INTERNAL u32 Action_Move(Encounter *enc, CombatEvent* event)
 {
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
@@ -455,7 +455,7 @@ internal u32 Action_Move(Encounter *enc, CombatEvent* event)
  * 7. if no more attacks, end turn else goto 2
  */
 
-internal Attack* FindMaxRangeAttack(Combatant* c)
+INTERNAL Attack* FindMaxRangeAttack(Combatant* c)
 {
     ListNode* cur = c->attackList;
     i32 value_of_max = INT32_MIN;
@@ -471,7 +471,7 @@ internal Attack* FindMaxRangeAttack(Combatant* c)
     return max_atk;
 }
 
-internal void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
+INTERNAL void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
 {
     Attack *attack = FindMaxRangeAttack(combatant);
     if(attack == NULL) {
@@ -538,7 +538,7 @@ internal void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
     }
 }
 
-internal void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
+INTERNAL void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
 {
     /*
     Attack *attack = Entity_GetMaxRangedAttack(combatant->entity);
@@ -643,7 +643,7 @@ void Encounter_Update(Encounter *enc, u64 time_ms)
     }
 }
 
-internal void PlaceHostileOnGrid(Encounter *enc, Combatant *enemy)
+INTERNAL void PlaceHostileOnGrid(Encounter *enc, Combatant *enemy)
 {
     i32 offx = RPG_GRID_W-4;
     i32 offy = (RPG_GRID_H/2)-2;
@@ -665,7 +665,7 @@ internal void PlaceHostileOnGrid(Encounter *enc, Combatant *enemy)
     RPG_LOG("Could not place enemy combatant %s!!\n", enemy->entity->name);
 }
 
-internal void PlaceFriendlyOnGrid(Encounter *enc, Combatant *c)
+INTERNAL void PlaceFriendlyOnGrid(Encounter *enc, Combatant *c)
 {
     i32 offx = 0;
     i32 offy = (RPG_GRID_H/2)-2;

@@ -7,21 +7,27 @@
 
 #include <defs.h>
 
-typedef struct PixelBuffer PixelBuffer;
-typedef u32    uvec4[4];
-typedef u32    uvec2[2];
+typedef struct              PixelBuffer PixelBuffer;
+typedef u32                 uvec4[4];
+typedef u32                 uvec2[2];
+
+typedef enum {
+                            PBF_RGBA,
+                            PBF_GREYSCALE
+} PixelBufferFormat;
 
 struct PixelBuffer {
-    u32 width;
-    u32 height;
-    u32 *pixels;
+    PixelBufferFormat       format;
+    u32                     width;
+    u32                     height;
+    void*                   pixels;
 };
 
 
-void PixelBuffer_Create(PixelBuffer* pb, u32 width, u32 height);
-bool PixelBuffer_CreateFromPNG(PixelBuffer* pb, const char* filename);
-void PixelBuffer_Destroy(PixelBuffer* pb);
-void PixelBuffer_SimpleBlit(PixelBuffer* src, uvec4 src_rect,
+void    PixelBuffer_Create(PixelBuffer* pb, u32 width, u32 height, PixelBufferFormat format);
+bool    PixelBuffer_CreateFromPNG(PixelBuffer* pb, const char* filename);
+void    PixelBuffer_Destroy(PixelBuffer* pb);
+void    PixelBuffer_SimpleBlit(PixelBuffer* src, uvec4 src_rect,
                             PixelBuffer* dst, uvec2 dst_pos);
 
 #endif //GAME_PIXEL_BUFFER_H

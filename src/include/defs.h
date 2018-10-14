@@ -16,7 +16,7 @@
 #define i32 int32_t
 #define i64 int64_t
 
-#define internal static
+#define INTERNAL static
 #define local_persist static
 #define global_variable static
 

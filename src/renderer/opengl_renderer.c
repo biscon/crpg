@@ -8,21 +8,21 @@
 #include <glad.h>
 #include <cglm/cam.h>
 
-//internal i32 quadVBO;
-internal GLuint texQuadVBO;
-internal GLuint texQuadVAO;
-//internal GLuint quadProgramID;
-internal GLuint texQuadProgramID;
-internal GLint uniformModelLoc;
-internal GLint uniformViewLoc;
-internal GLint uniformProjLoc;
-internal GLint uniformUseTextureLoc;
-internal GLint uniformTextureLoc;
-internal i32 screenWidth;
-internal i32 screenHeight;
+//INTERNAL i32 quadVBO;
+INTERNAL GLuint texQuadVBO;
+INTERNAL GLuint texQuadVAO;
+//INTERNAL GLuint quadProgramID;
+INTERNAL GLuint texQuadProgramID;
+INTERNAL GLint uniformModelLoc;
+INTERNAL GLint uniformViewLoc;
+INTERNAL GLint uniformProjLoc;
+INTERNAL GLint uniformUseTextureLoc;
+INTERNAL GLint uniformTextureLoc;
+INTERNAL i32 screenWidth;
+INTERNAL i32 screenHeight;
 
 /*
-internal const char* quadVertexSource = R"glsl(
+INTERNAL const char* quadVertexSource = R"glsl(
     #version 330 core
     // read from vertex buffer
     layout (location = 0) in vec2 position;
@@ -43,7 +43,7 @@ internal const char* quadVertexSource = R"glsl(
     }
 )glsl";
 
-internal const char* quadFragmentSource = R"glsl(
+INTERNAL const char* quadFragmentSource = R"glsl(
     #version 330 core
     // passed from vertex shader
     in vec4 Color;
@@ -58,7 +58,7 @@ internal const char* quadFragmentSource = R"glsl(
 )glsl";
 */
 
-internal const char* texQuadVertexSource = R"glsl(
+INTERNAL const char* texQuadVertexSource = R"glsl(
     #version 330 core
     // read from vertex buffer
     layout (location = 0) in vec2 position;
@@ -82,7 +82,7 @@ internal const char* texQuadVertexSource = R"glsl(
     }
 )glsl";
 
-internal const char* texQuadFragmentSource = R"glsl(
+INTERNAL const char* texQuadFragmentSource = R"glsl(
     #version 330 core
     // passed from vertex shader
     in vec4 Color;
@@ -104,7 +104,7 @@ internal const char* texQuadFragmentSource = R"glsl(
     }
 )glsl";
 
-internal void CheckCompileErrors(GLuint shader, const char* type)
+INTERNAL void CheckCompileErrors(GLuint shader, const char* type)
 {
     GLint success;
     GLchar infoLog[1024];
@@ -128,7 +128,7 @@ internal void CheckCompileErrors(GLuint shader, const char* type)
     }
 }
 
-internal GLuint CreateShaderProgram(const char* vertexsrc, const char* fragmentsrc)
+INTERNAL GLuint CreateShaderProgram(const char* vertexsrc, const char* fragmentsrc)
 {
     u32 vertex, fragment;
     // vertex shader
@@ -189,9 +189,13 @@ void OGL_InitRenderer(i32 screenw, i32 screenh) {
     // tex coords
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, bytes_vertex, (void *) (6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    Font_Init();
 }
 
 void OGL_ShutdownRenderer() {
+    Font_Shutdown();
+
     glDeleteBuffers(1, &texQuadVBO);
     glDeleteVertexArrays(1, &texQuadVAO);
     glDeleteProgram(texQuadProgramID);
@@ -338,6 +342,40 @@ bool OGL_UploadTexture(PixelBuffer *pb, bool filtering, u32 *texid)
     *texid = tex;
     return true;
 }
+
+bool OGL_UploadTextureGreyscale(PixelBuffer *pb, bool filtering, u32 *texid)
+{
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    u32 tex = 0;
+    glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    // upload pixel data to gpu mem
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, pb->width, pb->height, 0, GL_RED, GL_UNSIGNED_BYTE, pb->pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // nearest neighbour filtering
+    if(!filtering) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        SDL_Log("UploadTextureOGL OpenGL error: %d", err);
+        return false;
+    }
+
+    *texid = tex;
+    return true;
+}
+
 
 void OGL_DeleteTexture(u32 *tex) {
     glDeleteTextures(1, (GLuint*) &tex);

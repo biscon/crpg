@@ -9,7 +9,7 @@
 #include <time.h>
 #include <stdio.h>
 
-internal pcg32_random_t rngState;
+INTERNAL pcg32_random_t rngState;
 
 void Dice_Init()
 {

@@ -557,8 +557,8 @@ static unsigned HuffmanTree_make2DTree(HuffmanTree* tree)
   uninited, a value >= numcodes is an address to another bit, a value < numcodes
   is a code. The 2 rows are the 2 possible bit values (0 or 1), there are as
   many columns as codes - 1.
-  A good huffman tree has N * 2 - 1 nodes, of which N - 1 are internal nodes.
-  Here, the internal nodes are stored (what their 0 and 1 option point to).
+  A good huffman tree has N * 2 - 1 nodes, of which N - 1 are INTERNAL nodes.
+  Here, the INTERNAL nodes are stored (what their 0 and 1 option point to).
   There is only memory for such good tree currently, if there are more nodes
   (due to too long length codes), error 55 will happen
   */
@@ -5988,7 +5988,7 @@ const char* lodepng_error_text(unsigned code)
     case 82: return "color conversion to palette requested while a color isn't in palette";
     case 83: return "memory allocation failed";
     case 84: return "given image too small to contain all pixels to be encoded";
-    case 86: return "impossible offset in lz77 encoding (internal bug)";
+    case 86: return "impossible offset in lz77 encoding (INTERNAL bug)";
     case 87: return "must provide custom zlib function pointer if LODEPNG_COMPILE_ZLIB is not defined";
     case 88: return "invalid filter strategy given for LodePNGEncoderSettings.filter_strategy";
     case 89: return "text chunk keyword too short or long: must have size 1-79";

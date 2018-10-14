@@ -25,7 +25,7 @@ void Store_Destroy(Store *c)
     }
 }
 
-internal void resizeContainer(Store *c)
+INTERNAL void resizeContainer(Store *c)
 {
     size_t old_cap = c->capacity;
     c->capacity = 2 * old_cap;

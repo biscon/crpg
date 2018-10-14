@@ -17,7 +17,7 @@ typedef struct { uint64_t state;  uint64_t inc; } pcg32_random_t;
 static inline u32 pcg32_random_r(pcg32_random_t* rng)
 {
     uint64_t oldstate = rng->state;
-    // Advance internal state
+    // Advance INTERNAL state
     rng->state = oldstate * 6364136223846793005ULL + (rng->inc|1);
     // Calculate output function (XSH RR), uses old state for max ILP
     u32 xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
