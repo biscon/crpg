@@ -63,8 +63,9 @@ void List_Destroy(ListNode **head) {
     if(current == NULL)
         return;
     while(current != NULL) {
+        ListNode* next = current->next;
         free(current);
-        current = current->next;
+        current = next;
     }
     (*head) = NULL;
 }

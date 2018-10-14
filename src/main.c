@@ -259,7 +259,7 @@ int main()
     Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM);
     Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM);
     Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
-    //Encounter_Start(encounter);
+    Encounter_Start(encounter);
 
     Quad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
                         .left = 10, .top = 100, .right = 1270, .bottom = 610};

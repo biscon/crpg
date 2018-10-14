@@ -581,6 +581,10 @@ void Encounter_Destroy(Encounter *enc)
         Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
         if(c->aiInterface)
             free(c->aiInterface);
+        if(c->attackList)
+            LIST_DESTROY(c->attackList);
+        if(c->usedAttackList)
+            LIST_DESTROY(c->usedAttackList);
         free(VectorGet(&enc->combatants, i));
     }
     VECTOR_FREE(enc->combatants);
@@ -609,6 +613,10 @@ void Encounter_RemoveEntity(Encounter *enc, Entity *entity)
         VECTOR_REMOVE(enc->combatants, index);
         if(c->aiInterface)
             free(c->aiInterface);
+        if(c->attackList)
+            LIST_DESTROY(c->attackList);
+        if(c->usedAttackList)
+            LIST_DESTROY(c->attackList);
         free(c);
     }
 }
