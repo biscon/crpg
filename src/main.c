@@ -259,7 +259,7 @@ int main()
     Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM);
     Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM);
     Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
-    Encounter_Start(encounter);
+    //Encounter_Start(encounter);
 
     Quad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
                         .left = 10, .top = 100, .right = 1270, .bottom = 610};
@@ -269,6 +269,22 @@ int main()
 
     Quad quad3 = {.color = {0.0f, 1.0f, 0.0f, 1.0f},
             .left = 400, .top = 500, .right = 700, .bottom = 600};
+
+
+    TextureAtlas atlas;
+    TextureAtlas_Create(&atlas, 4096, 4096);
+    u32 tex1 = TextureAtlas_AddImage(&atlas, "assets/checker.png");
+    u32 tex2 = TextureAtlas_AddImage(&atlas, "assets/brick.png");
+    TextureAtlas_PackAndUpload(&atlas);
+
+    AtlasQuad atlasquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex1,
+            .left = 200, .top = 200, .right = 530, .bottom = 530};
+
+    AtlasQuad atlasquad2 = {.color = {1.0f, 1.0f, 1.0f, 0.50f}, .atlasId = tex2,
+            .left = 600, .top = 200, .right = 1000, .bottom = 600};
+
+    AtlasQuad atlasquad3 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex2,
+            .left = 1000, .top = 200, .right = 1275, .bottom = 600};
 
     while(!ShouldQuit)
     {
@@ -303,14 +319,17 @@ int main()
 
         Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
         Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
+        Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
         Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
+        Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
+        Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad3, 1);
 
 
         OGL_RenderCmdBuffer(&renderBuffer);
-        //exit(0);
 
         SDL_GL_SwapWindow(Window);
     }
+
     Encounter_Destroy(encounter);
 
     RPG_DestroyEntity(entity);
@@ -319,6 +338,7 @@ int main()
 
     RPG_ShutdownContext(&rpgContext);
 
+    TextureAtlas_Destroy(&atlas);
     Render_DestroyCmdBuffer(&renderBuffer);
 
     ShutdownVideo();

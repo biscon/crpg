@@ -578,6 +578,9 @@ Encounter *Encounter_Create(CombatInterface* combatInterface)
 void Encounter_Destroy(Encounter *enc)
 {
     for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
+        Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
+        if(c->aiInterface)
+            free(c->aiInterface);
         free(VectorGet(&enc->combatants, i));
     }
     VECTOR_FREE(enc->combatants);

@@ -9,16 +9,17 @@
 #include <cglm/cam.h>
 
 //internal i32 quadVBO;
-internal GLuint textQuadVBO;
-internal GLuint textQuadVAO;
+internal GLuint texQuadVBO;
+internal GLuint texQuadVAO;
 //internal GLuint quadProgramID;
 internal GLuint texQuadProgramID;
 internal GLint uniformModelLoc;
 internal GLint uniformViewLoc;
 internal GLint uniformProjLoc;
+internal GLint uniformUseTextureLoc;
+internal GLint uniformTextureLoc;
 internal i32 screenWidth;
 internal i32 screenHeight;
-
 
 /*
 internal const char* quadVertexSource = R"glsl(
@@ -92,11 +93,14 @@ internal const char* texQuadFragmentSource = R"glsl(
 
     // texture
     uniform sampler2D tex;
+    uniform int use_texture;
 
     void main()
     {
-        //outColor = texture(tex, Texcoord) * Color;
-        outColor = Color;
+        if(use_texture == 1)
+            outColor = texture(tex, Texcoord) * Color;
+        else
+            outColor = Color;
     }
 )glsl";
 
@@ -161,16 +165,18 @@ void OGL_InitRenderer(i32 screenw, i32 screenh) {
     uniformModelLoc = glGetUniformLocation(texQuadProgramID, "model");
     uniformViewLoc = glGetUniformLocation(texQuadProgramID, "view");
     uniformProjLoc = glGetUniformLocation(texQuadProgramID, "proj");
+    uniformUseTextureLoc = glGetUniformLocation(texQuadProgramID, "use_texture");
+    uniformTextureLoc = glGetUniformLocation(texQuadProgramID, "tex");
 
     glUseProgram(texQuadProgramID);
 
     // generate and bind VAO
-    glGenVertexArrays(1, &textQuadVAO);
-    glBindVertexArray(textQuadVAO);
+    glGenVertexArrays(1, &texQuadVAO);
+    glBindVertexArray(texQuadVAO);
 
     // generate and bind buffer
-    glGenBuffers(1, &textQuadVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, textQuadVBO);
+    glGenBuffers(1, &texQuadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, texQuadVBO);
 
     GLsizei bytes_vertex = FLOATS_PER_VERTEX * sizeof(float);
     // setup vertex attributes
@@ -186,8 +192,8 @@ void OGL_InitRenderer(i32 screenw, i32 screenh) {
 }
 
 void OGL_ShutdownRenderer() {
-    glDeleteBuffers(1, &textQuadVBO);
-    glDeleteVertexArrays(1, &textQuadVAO);
+    glDeleteBuffers(1, &texQuadVBO);
+    glDeleteVertexArrays(1, &texQuadVAO);
     glDeleteProgram(texQuadProgramID);
     //glDeleteProgram(quadProgramID);
 }
@@ -197,11 +203,12 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
     glUseProgram(texQuadProgramID);
 
     // bind vao
-    glBindVertexArray(textQuadVAO);
+    glBindVertexArray(texQuadVAO);
     // upload vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, textQuadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, texQuadVBO);
     glBufferData(GL_ARRAY_BUFFER, (buf->quadVertOffset - buf->quadVerts), buf->quadVerts, GL_STREAM_DRAW);
 
+    // TODO remove model and view matrices, not needed for 2d
     // setup matrices, right now we only really need the projection matrix
     mat4 model = {};
     mat4 view = {};
@@ -216,6 +223,16 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
     glUniformMatrix4fv(uniformModelLoc, 1, GL_FALSE, (float*) model);
     glUniformMatrix4fv(uniformViewLoc, 1, GL_FALSE, (float*) view);
     glUniformMatrix4fv(uniformProjLoc, 1, GL_FALSE, (float*) proj);
+
+    // bind sampler to texture unit 0
+    glUniform1i(uniformTextureLoc, 0);
+
+    // disable depth testing since we're using blending and painters algorithm
+    glDisable(GL_DEPTH_TEST);
+
+    // enable alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     u8 *cur_ptr = buf->commands;
     while(cur_ptr < buf->cmdOffset) {
@@ -234,6 +251,25 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
                 RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
                 //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
                 cur_ptr += sizeof(RenderCmdQuads);
+                glUniform1i(uniformUseTextureLoc, 0);
+                glDrawArrays(GL_TRIANGLES, (GLsizei) cmd->vertexOffset, (GLsizei) cmd->vertexCount);
+                break;
+            }
+            case RCMD_TEX_QUAD: {
+                RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
+                //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
+                cur_ptr += sizeof(RenderCmdQuads);
+                glUniform1i(uniformUseTextureLoc, 1);
+                glBindTexture(GL_TEXTURE_2D, cmd->texId);
+                glDrawArrays(GL_TRIANGLES, (GLsizei) cmd->vertexOffset, (GLsizei) cmd->vertexCount);
+                break;
+            }
+            case RCMD_TEX_QUAD_ATLAS: {
+                RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
+                //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
+                cur_ptr += sizeof(RenderCmdQuads);
+                glUniform1i(uniformUseTextureLoc, 1);
+                glBindTexture(GL_TEXTURE_2D, cmd->texId);
                 glDrawArrays(GL_TRIANGLES, (GLsizei) cmd->vertexOffset, (GLsizei) cmd->vertexCount);
                 break;
             }

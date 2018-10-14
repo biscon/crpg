@@ -10,8 +10,8 @@
 #include <store.h>
 #include "pixel_buffer.h"
 
-#define RENDERER_CMD_BUF_SIZE       8192
-#define RENDERER_VERTEX_BUF_SIZE    65536
+#define RENDERER_CMD_BUF_SIZE       KILOBYTES(32)
+#define RENDERER_VERTEX_BUF_SIZE    KILOBYTES(256)
 #define FLOATS_PER_VERTEX           8
 #define VERTS_PER_QUAD              48
 

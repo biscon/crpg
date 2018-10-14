@@ -47,6 +47,7 @@ void Render_PushClearCmd(RenderCmdBuffer *buf, vec4 color)
     memcpy(&cmd.color, color, sizeof(vec4));
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdClear));
     buf->cmdOffset += sizeof(RenderCmdClear);
+    assert(buf->cmdOffset - buf->commands > 0);
 }
 
 /*
@@ -79,11 +80,13 @@ void Render_PushQuadsCmd(RenderCmdBuffer* buf, Quad *quads, size_t count)
 
         memcpy(buf->quadVertOffset, &vertices, byte_size);
         buf->quadVertOffset += byte_size;
+        assert(buf->quadVertOffset - buf->quadVerts > 0);
         q += sizeof(Quad);
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);
+    assert(buf->cmdOffset - buf->commands > 0);
 }
 
 /*
@@ -116,11 +119,13 @@ void Render_PushTexturedQuadsCmd(RenderCmdBuffer* buf, u32 texid, Quad *quads, s
 
         memcpy(buf->quadVertOffset, &vertices, byte_size);
         buf->quadVertOffset += byte_size;
+        assert(buf->quadVertOffset - buf->quadVerts > 0);
         q += sizeof(Quad);
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);
+    assert(buf->cmdOffset - buf->commands > 0);
 }
 
 
@@ -162,11 +167,13 @@ void Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas, AtlasQu
 
         memcpy(buf->quadVertOffset, &vertices, byte_size);
         buf->quadVertOffset += byte_size;
+        assert(buf->quadVertOffset - buf->quadVerts > 0);
         q += sizeof(AtlasQuad);
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);
+    assert(buf->cmdOffset - buf->commands > 0);
 }
 
 
@@ -176,6 +183,7 @@ void Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas, AtlasQu
 
 void TextureAtlas_Create(TextureAtlas *atlas, i32 width, i32 height)
 {
+    memset(atlas, 0, sizeof(TextureAtlas));
     atlas->noRects = 0;
     atlas->width = width;
     atlas->height = height;
@@ -187,6 +195,9 @@ void TextureAtlas_Create(TextureAtlas *atlas, i32 width, i32 height)
 
 void TextureAtlas_Destroy(TextureAtlas *atlas)
 {
+    if(atlas->isUploaded) {
+        OGL_DeleteTexture(&atlas->textureId);
+    }
     hashtable_term(atlas->entryTable);
     free(atlas->entryTable);
     STORE_DESTROY(atlas->rectStore);
@@ -218,6 +229,7 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
         assert(cur_rect != NULL);
         TextureAtlasEntry* entry = hashtable_find(atlas->entryTable, (u32) cur_rect->id);
         assert(entry != NULL);
+        SDL_Log("Loading png %s", entry->filename);
         if(!PixelBuffer_CreateFromPNG(&entry->pixelBuffer, entry->filename)) {
             SDL_Log("Error loading png %s", entry->filename);
             continue;
@@ -225,12 +237,6 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
 
         cur_rect->w = (stbrp_coord) entry->pixelBuffer.width;
         cur_rect->h = (stbrp_coord) entry->pixelBuffer.height;
-
-        entry->uvRect.left = remapFloat(0, (float) atlas->width, 0, 1, (float) cur_rect->x);
-        entry->uvRect.right = remapFloat(0, (float) atlas->width, 0, 1, (float) (cur_rect->x + cur_rect->w));
-        // texture space flips y axis just to piss you off :)
-        entry->uvRect.top = remapFloat(0, (float) atlas->height, 0, 1, (float) cur_rect->y);
-        entry->uvRect.bottom = remapFloat(0, (float) atlas->height, 0, 1, (float) (cur_rect->y + cur_rect->h));
     }
 
     // TODO this might overflow the stack
@@ -238,18 +244,23 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
     struct stbrp_node nodes[nodeCount];
 
     stbrp_init_target(&context, atlas->width, atlas->height, nodes, nodeCount);
-    stbrp_pack_rects(&context, hashtable_items(atlas->entryTable), atlas->rectStore.noItems);
-    stbrp_rect *rects = (stbrp_rect*) hashtable_items(atlas->entryTable);
+    stbrp_rect *rects = (stbrp_rect*) atlas->rectStore.data;
+    stbrp_pack_rects(&context, rects, atlas->rectStore.noItems);
     PixelBuffer buffer;
     PixelBuffer_Create(&buffer, (u32) atlas->width, (u32) atlas->height);
     for (u32 i = 0; i < atlas->noRects; ++i)
     {
-        SDL_Log("rect %i (%hu,%hu) was_packed=%i", rects[i].id, rects[i].x, rects[i].y, rects[i].was_packed);
+        SDL_Log("rect %i (%hu,%hu,%hu,%hu) was_packed=%i", rects[i].id, rects[i].x, rects[i].y, rects[i].w, rects[i].h, rects[i].was_packed);
         stbrp_rect* cur_rect = STORE_GET_AT(atlas->rectStore, i);
         assert(cur_rect != NULL);
         TextureAtlasEntry* entry = hashtable_find(atlas->entryTable, (u32) cur_rect->id);
         assert(entry != NULL);
 
+        entry->uvRect.left = remapFloat(0, (float) atlas->width, 0, 1, (float) cur_rect->x);
+        entry->uvRect.right = remapFloat(0, (float) atlas->width, 0, 1, (float) (cur_rect->x + cur_rect->w));
+        // texture space flips y axis just to piss you off :)
+        entry->uvRect.top = remapFloat(0, (float) atlas->height, 0, 1, (float) cur_rect->y);
+        entry->uvRect.bottom = remapFloat(0, (float) atlas->height, 0, 1, (float) (cur_rect->y + cur_rect->h));
 
         PixelBuffer_SimpleBlit(&entry->pixelBuffer, (uvec4) {0, 0, entry->pixelBuffer.width,
                                                              entry->pixelBuffer.height},
@@ -262,6 +273,7 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas)
     }
     atlas->isUploaded = true;
     PixelBuffer_Destroy(&buffer);
+    STORE_DESTROY(atlas->rectStore);
 }
 
 void TextureAtlas_SetUVRect(TextureAtlas *atlas, u32 id, FloatRect *rect)
