@@ -15,7 +15,7 @@ void Store_Init(Store* c, size_t item_size)
 
 void Store_Destroy(Store *c)
 {
-    SDL_Log("Destroying container");
+    //SDL_Log("Destroying container");
     if(c->data)
     {
         free(c->data);
@@ -44,7 +44,7 @@ u32 Store_Pushback(Store *c, void *item)
     memcpy(ptr, item, c->itemSize);
     u32 index = c->noItems;
     c->noItems++;
-    SDL_Log("Adding item to container at index %d, new count %d", index, c->noItems);
+    //SDL_Log("Adding item to container at index %d, new count %d", index, c->noItems);
     return index;
 }
 
@@ -66,11 +66,11 @@ void Store_InsertItemAt(Store *c, u32 i, void *item)
     char *dst_ptr = src_ptr + c->itemSize;
     int copy_items = c->noItems - i;
     size_t move_size = copy_items * c->itemSize;
-    SDL_Log("Adding item at %d, container size is %d. Moving %d items one down, moving %ld bytes", i, c->noItems, copy_items, move_size);
+    //SDL_Log("Adding item at %d, container size is %d. Moving %d items one down, moving %ld bytes", i, c->noItems, copy_items, move_size);
     memmove(dst_ptr, src_ptr, move_size);
     memcpy(src_ptr, item, c->itemSize);
     c->noItems++;
-    SDL_Log("Adding item to container at index %d, new count %d", i, c->noItems);
+    //SDL_Log("Adding item to container at index %d, new count %d", i, c->noItems);
 }
 
 u32 Store_GetSize(Store *c)
@@ -97,7 +97,7 @@ void Store_RemoveItemAt(Store *c, u32 index)
         char *rest_ptr = ptr + c->itemSize;
         int rest_items = c->noItems - index - 1;
         size_t move_size =  rest_items * c->itemSize;
-        SDL_Log("Removing item at %d, container size is %d. Moving %d items one up, moving %ld bytes", index, c->noItems, rest_items, move_size);
+        //SDL_Log("Removing item at %d, container size is %d. Moving %d items one up, moving %ld bytes", index, c->noItems, rest_items, move_size);
         memmove(ptr, rest_ptr, move_size);
     }
     c->noItems--;

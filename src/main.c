@@ -286,6 +286,9 @@ int main()
     AtlasQuad atlasquad3 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex2,
             .left = 1000, .top = 200, .right = 1275, .bottom = 600};
 
+    Font font;
+    Font_Create(&font, "assets/OpenSans-Semibold.ttf", 32);
+
     while(!ShouldQuit)
     {
         oldTime = GetTime();
@@ -337,6 +340,10 @@ int main()
     RPG_DestroyEntity(monster2);
 
     RPG_ShutdownContext(&rpgContext);
+
+
+    Font_Destroy(&font);
+
 
     TextureAtlas_Destroy(&atlas);
     Render_DestroyCmdBuffer(&renderBuffer);

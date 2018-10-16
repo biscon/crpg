@@ -34,4 +34,7 @@
 #define ASSERT(Expression)
 #endif
 
+#define HASHTABLE_U32 u32
+#define HASHTABLE_U64 u64
+
 #endif

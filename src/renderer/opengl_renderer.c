@@ -210,7 +210,7 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
     glBindVertexArray(texQuadVAO);
     // upload vertex data
     glBindBuffer(GL_ARRAY_BUFFER, texQuadVBO);
-    glBufferData(GL_ARRAY_BUFFER, (buf->quadVertOffset - buf->quadVerts), buf->quadVerts, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (buf->quadVertsPtr - buf->quadVerts), buf->quadVerts, GL_STREAM_DRAW);
 
     // TODO remove model and view matrices, not needed for 2d
     // setup matrices, right now we only really need the projection matrix
