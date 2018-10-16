@@ -8,8 +8,6 @@
 #include <defs.h>
 
 typedef struct              PixelBuffer PixelBuffer;
-typedef u32                 uvec4[4];
-typedef u32                 uvec2[2];
 
 typedef enum {
                             PBF_RGBA,

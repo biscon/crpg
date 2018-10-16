@@ -5,6 +5,7 @@
 #include <string.h>
 #include <SDL_log.h>
 #include "renderer.h"
+#include "../util/string_util.h"
 
 
 void Render_CreateCmdBuffer(RenderCmdBuffer* buf)
@@ -71,7 +72,7 @@ void Render_PushQuadsCmd(RenderCmdBuffer* buf, Quad *quads, size_t count)
         memcpy(buf->quadVertsPtr, &vertices, byte_size);
         buf->quadVertsPtr += byte_size;
         assert(buf->quadVertsPtr - buf->quadVerts > 0);
-        q += sizeof(Quad);
+        q += 1;
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
@@ -110,7 +111,7 @@ void Render_PushTexturedQuadsCmd(RenderCmdBuffer* buf, u32 texid, Quad *quads, s
         memcpy(buf->quadVertsPtr, &vertices, byte_size);
         buf->quadVertsPtr += byte_size;
         assert(buf->quadVertsPtr - buf->quadVerts > 0);
-        q += sizeof(Quad);
+        q += 1;
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
@@ -158,10 +159,65 @@ void Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas, AtlasQu
         memcpy(buf->quadVertsPtr, &vertices, byte_size);
         buf->quadVertsPtr += byte_size;
         assert(buf->quadVertsPtr - buf->quadVerts > 0);
-        q += sizeof(AtlasQuad);
+        q += 1;
     }
 
     memcpy(buf->cmdOffset, &cmd, sizeof(RenderCmdQuads));
     buf->cmdOffset += sizeof(RenderCmdQuads);
     assert(buf->cmdOffset - buf->commands > 0);
+}
+
+
+void Render_PushText(RenderCmdBuffer *buf, Font *font, float x, float y, vec4 color, const char *text) {
+    size_t len = strlen(text);
+    Store quadStore;
+    STORE_INIT(quadStore, sizeof(AtlasQuad));
+
+    for (int i=0; i < len;) {
+        // TODO(Brett): if the character is null, attempt to fetch it from the font
+        u32 cpLen;
+        u32 cp = DecodeCodePoint(&cpLen, &text[i]);
+        Glyph* c = hashtable_find(&font->glyphTable, (HASHTABLE_U64) cp);
+        //assert(c != NULL);
+        i += cpLen;
+        if(c == NULL)
+            continue;
+        float xp, yp, h, w;
+        xp = x + c->bearing[0];
+        //yp = y - (c->size[1] - c->bearing[1]);
+        yp = y - (c->bearing[1]);
+        w = c->size[0];
+        h = c->size[1];
+        AtlasQuad quad = {
+                .color      = {color[0], color[1], color[2], color[3]},
+                .atlasId    = c->atlasId,
+                .left       = xp,
+                .top        = yp,
+                .right      = xp + w,
+                .bottom     = yp + h
+        };
+
+        STORE_PUSHBACK(quadStore, &quad);
+
+        /*
+        float verts[6][4] = {
+                {xp,     yp + h, 0, 0},
+                {xp,     yp,     0, 1},
+                {xp + w, yp,     1, 1},
+                {xp,     yp + h, 0, 0},
+                {xp + w, yp,     1, 1},
+                {xp + w, yp + h, 1, 0}
+        };
+        glBindTexture(GL_TEXTURE_2D, c.textureId);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+         */
+        x += c->advance;
+    }
+
+    //SDL_Log("Generated %d glyph quads", quadStore.noItems);
+    Render_PushAtlasQuadsCmd(buf, &font->atlas, quadStore.data, quadStore.noItems);
+    STORE_DESTROY(quadStore);
 }

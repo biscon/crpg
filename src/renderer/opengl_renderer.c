@@ -18,6 +18,7 @@ INTERNAL GLint uniformViewLoc;
 INTERNAL GLint uniformProjLoc;
 INTERNAL GLint uniformUseTextureLoc;
 INTERNAL GLint uniformTextureLoc;
+INTERNAL GLint uniformIsFontLoc;
 INTERNAL i32 screenWidth;
 INTERNAL i32 screenHeight;
 
@@ -94,13 +95,20 @@ INTERNAL const char* texQuadFragmentSource = R"glsl(
     // texture
     uniform sampler2D tex;
     uniform int use_texture;
+    uniform int is_font;
 
     void main()
     {
-        if(use_texture == 1)
-            outColor = texture(tex, Texcoord) * Color;
-        else
+        if(use_texture == 1) {
+            if(is_font == 0) {
+                outColor = texture(tex, Texcoord) * Color;
+            } else {
+                float r = texture(tex, Texcoord).r;
+                outColor = Color * vec4(r, r, r, Color.a);
+            }
+        } else {
             outColor = Color;
+        }
     }
 )glsl";
 
@@ -166,6 +174,7 @@ void OGL_InitRenderer(i32 screenw, i32 screenh) {
     uniformViewLoc = glGetUniformLocation(texQuadProgramID, "view");
     uniformProjLoc = glGetUniformLocation(texQuadProgramID, "proj");
     uniformUseTextureLoc = glGetUniformLocation(texQuadProgramID, "use_texture");
+    uniformIsFontLoc = glGetUniformLocation(texQuadProgramID, "is_font");
     uniformTextureLoc = glGetUniformLocation(texQuadProgramID, "tex");
 
     glUseProgram(texQuadProgramID);
@@ -255,6 +264,7 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
                 RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
                 //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
                 cur_ptr += sizeof(RenderCmdQuads);
+                glUniform1i(uniformIsFontLoc, 0);
                 glUniform1i(uniformUseTextureLoc, 0);
                 glDrawArrays(GL_TRIANGLES, (GLsizei) cmd->vertexOffset, (GLsizei) cmd->vertexCount);
                 break;
@@ -263,6 +273,7 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
                 RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
                 //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
                 cur_ptr += sizeof(RenderCmdQuads);
+                glUniform1i(uniformIsFontLoc, 0);
                 glUniform1i(uniformUseTextureLoc, 1);
                 glBindTexture(GL_TEXTURE_2D, cmd->texId);
                 glDrawArrays(GL_TRIANGLES, (GLsizei) cmd->vertexOffset, (GLsizei) cmd->vertexCount);
@@ -272,6 +283,10 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
                 RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
                 //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
                 cur_ptr += sizeof(RenderCmdQuads);
+                i32 is_font = 0;
+                if(cmd->atlas->format == PBF_GREYSCALE)
+                    is_font = 1;
+                glUniform1i(uniformIsFontLoc, is_font);
                 glUniform1i(uniformUseTextureLoc, 1);
                 glBindTexture(GL_TEXTURE_2D, cmd->texId);
                 glDrawArrays(GL_TRIANGLES, (GLsizei) cmd->vertexOffset, (GLsizei) cmd->vertexCount);

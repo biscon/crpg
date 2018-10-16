@@ -12,7 +12,7 @@
 
 #define EN 0x01
 #define EN_START 0x00
-#define EN_END   0x80
+#define EN_END   0xFF
 #define KR 0x02
 #define KR_START 0xAC00
 #define KR_END   0xD7A3

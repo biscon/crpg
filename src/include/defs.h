@@ -37,4 +37,7 @@
 #define HASHTABLE_U32 u32
 #define HASHTABLE_U64 u64
 
+typedef u32                 uvec4[4];
+typedef u32                 uvec2[2];
+
 #endif

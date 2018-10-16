@@ -287,7 +287,7 @@ int main()
             .left = 1000, .top = 200, .right = 1275, .bottom = 600};
 
     Font font;
-    Font_Create(&font, "assets/OpenSans-Semibold.ttf", 32);
+    Font_Create(&font, "assets/OpenSans-Semibold.ttf", 64);
 
     while(!ShouldQuit)
     {
@@ -327,6 +327,7 @@ int main()
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad3, 1);
 
+        Render_PushText(&renderBuffer, &font, 50, 70, COLOR_BLUE, "Hej Per lår bøffer århus!!");
 
         OGL_RenderCmdBuffer(&renderBuffer);
 

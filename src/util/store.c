@@ -29,7 +29,7 @@ INTERNAL void resizeContainer(Store *c)
 {
     size_t old_cap = c->capacity;
     c->capacity = 2 * old_cap;
-    SDL_Log("Resizing container capacity from %ld to %ld items", old_cap, c->capacity);
+    //SDL_Log("Resizing container capacity from %ld to %ld items", old_cap, c->capacity);
     c->data = realloc(c->data, c->capacity * c->itemSize);
 }
 
@@ -101,7 +101,7 @@ void Store_RemoveItemAt(Store *c, u32 index)
         memmove(ptr, rest_ptr, move_size);
     }
     c->noItems--;
-    SDL_Log("Element at index %d has been removed, new container size is %d", index, c->noItems);
+    //SDL_Log("Element at index %d has been removed, new container size is %d", index, c->noItems);
 }
 
 i32 Store_IndexOf(Store *c, void *ptr)

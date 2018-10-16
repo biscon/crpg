@@ -17,6 +17,14 @@
 #define FLOATS_PER_VERTEX               8
 #define VERTS_PER_QUAD                  48
 
+#define COLOR_TRANSPARENT               (vec4) {0.0f, 0.0f, 0.0f, 0.0f}
+#define COLOR_WHITE                     (vec4) {1.0f, 1.0f, 1.0f, 1.0f}
+#define COLOR_RED                       (vec4) {1.0f, 0.0f, 0.0f, 1.0f}
+#define COLOR_MAGENTA                   (vec4) {1.0f, 0.0f, 1.0f, 1.0f}
+#define COLOR_YELLOW                    (vec4) {1.0f, 1.0f, 0.0f, 1.0f}
+#define COLOR_BLUE                      (vec4) {0.0f, 0.0f, 1.0f, 1.0f}
+
+
 typedef struct RenderCmd                RenderCmd;
 typedef struct RenderCmdBuffer          RenderCmdBuffer;
 typedef struct RenderCmdClear           RenderCmdClear;
@@ -76,6 +84,7 @@ struct AtlasQuad {
         float                           bottom;
 };
 
+// TODO push rotations and scale to the model matrices in the shaders allowing rects to spin'n'shit
 void    Render_CreateCmdBuffer(RenderCmdBuffer* buf);
 void    Render_DestroyCmdBuffer(RenderCmdBuffer* buf);
 void    Render_ClearCmdBuffer(RenderCmdBuffer* buf);
@@ -85,7 +94,7 @@ void    Render_PushTexturedQuadsCmd(RenderCmdBuffer* buf, u32 texid,
                                     Quad *quads, size_t count);
 void    Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas,
                                  AtlasQuad *quads, size_t count);
-void    Render_PushText(Font *font, const char* str);
+void    Render_PushText(RenderCmdBuffer *buf, Font *font, float x, float y, vec4 color, const char* text);
 
 
 #endif //GAME_RENDERER_H
