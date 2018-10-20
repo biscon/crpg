@@ -12,8 +12,8 @@
 #include "font.h"
 #include "texture_atlas.h"
 
-#define RENDERER_CMD_BUF_SIZE           KILOBYTES(32)
-#define RENDERER_VERTEX_BUF_SIZE        KILOBYTES(256)
+#define RENDERER_CMD_BUF_SIZE           KILOBYTES(128)
+#define RENDERER_VERTEX_BUF_SIZE        MEGABYTES(2)
 #define FLOATS_PER_VERTEX               8
 #define VERTS_PER_QUAD                  48
 

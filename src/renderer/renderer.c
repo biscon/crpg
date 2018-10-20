@@ -167,7 +167,7 @@ void Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas, AtlasQu
     assert(buf->cmdOffset - buf->commands > 0);
 }
 
-
+// TODO make this more efficiently by pushing triangles directly instead of calling PushAtlasQuads (avoid a memory copy)
 void Render_PushText(RenderCmdBuffer *buf, Font *font, float x, float y, vec4 color, const char *text) {
     size_t len = strlen(text);
     Store quadStore;
@@ -184,8 +184,7 @@ void Render_PushText(RenderCmdBuffer *buf, Font *font, float x, float y, vec4 co
             continue;
         float xp, yp, h, w;
         xp = x + c->bearing[0];
-        //yp = y - (c->size[1] - c->bearing[1]);
-        yp = y - (c->bearing[1]);
+        yp = y - c->bearing[1];
         w = c->size[0];
         h = c->size[1];
         AtlasQuad quad = {
@@ -198,22 +197,6 @@ void Render_PushText(RenderCmdBuffer *buf, Font *font, float x, float y, vec4 co
         };
 
         STORE_PUSHBACK(quadStore, &quad);
-
-        /*
-        float verts[6][4] = {
-                {xp,     yp + h, 0, 0},
-                {xp,     yp,     0, 1},
-                {xp + w, yp,     1, 1},
-                {xp,     yp + h, 0, 0},
-                {xp + w, yp,     1, 1},
-                {xp + w, yp + h, 1, 0}
-        };
-        glBindTexture(GL_TEXTURE_2D, c.textureId);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-         */
         x += c->advance;
     }
 

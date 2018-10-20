@@ -6,6 +6,7 @@
 #include "rpg/combat.h"
 #include "rpg/rpg_log.h"
 #include "renderer/opengl_renderer.h"
+#include "renderer/terminal.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -287,7 +288,14 @@ int main()
             .left = 1000, .top = 200, .right = 1275, .bottom = 600};
 
     Font font;
-    Font_Create(&font, "assets/OpenSans-Semibold.ttf", 64);
+    //Font_Create(&font, "assets/PressStart2P.ttf", 12);
+    //Font_Create(&font, "assets/square.ttf", 16);
+    Font_Create(&font, "assets/bigblue437.ttf", 24);
+
+    Terminal term;
+    Term_Create(&term, 80, 60, &font);
+    Term_SetBGColor(&term, TERM_COL_RED);
+    Term_Print(&term, 0, 0,"Hej Per, har du savnet mig?");
 
     while(!ShouldQuit)
     {
@@ -316,9 +324,10 @@ int main()
         // render debug info
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
+
+        Term_Render(&term, 0, 0, &renderBuffer);
 
         Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
         Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
@@ -327,7 +336,7 @@ int main()
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad3, 1);
 
-        Render_PushText(&renderBuffer, &font, 50, 70, COLOR_BLUE, "Hej Per lår bøffer århus!!");
+        //Render_PushText(&renderBuffer, &font, 50, 70, COLOR_WHITE, "SYSTEM READY.");
 
         OGL_RenderCmdBuffer(&renderBuffer);
 
@@ -342,6 +351,8 @@ int main()
 
     RPG_ShutdownContext(&rpgContext);
 
+
+    Term_Destroy(&term);
 
     Font_Destroy(&font);
 

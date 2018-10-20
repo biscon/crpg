@@ -10,6 +10,7 @@
 
 #define STORE_INIT(store, item_size)        Store_Init(&(store), (item_size))
 #define STORE_DESTROY(store)                Store_Destroy(&(store))
+#define STORE_CLEAR(store)                  Store_Clear(&(store))
 #define STORE_PUSHBACK(store, item)         Store_Pushback(&(store), item)
 #define STORE_SIZE(store)                   Store_GetSize(&(store))
 #define STORE_GET_AT(store, index)          Store_GetItemAt(&(store), (index))
@@ -28,6 +29,7 @@ struct Store
 };
 
 void        Store_Init(Store* c, size_t item_size);
+void        Store_Clear(Store* c);
 void        Store_Destroy(Store *c);
 u32         Store_Pushback(Store *c, void *item);
 u32         Store_GetSize(Store *c);

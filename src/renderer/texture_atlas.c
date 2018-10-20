@@ -91,8 +91,10 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas) {
     PixelBuffer buffer;
     PixelBuffer_Create(&buffer, (u32) atlas->width, (u32) atlas->height, atlas->format);
     for (u32 i = 0; i < atlas->noRects; ++i) {
+        /*
         SDL_Log("rect %i (%hu,%hu,%hu,%hu) was_packed=%i", rects[i].id, rects[i].x, rects[i].y,
                 rects[i].w, rects[i].h, rects[i].was_packed);
+        */
         stbrp_rect *cur_rect = STORE_GET_AT(atlas->rectStore, i);
         assert(cur_rect != NULL);
         TextureAtlasEntry *entry = hashtable_find(atlas->entryTable, (u32) cur_rect->id);

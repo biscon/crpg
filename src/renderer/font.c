@@ -6,6 +6,7 @@
 #include <ft2build.h>
 //#include <glad.h>
 #include <SDL_log.h>
+#include <assert.h>
 #include FT_FREETYPE_H
 
 //#define HASHTABLE_IMPLEMENTATION
@@ -67,6 +68,9 @@ bool Font_Create(Font *font, const char *path, u32 size)
         return false;
     font->face = face;
     font->size = size;
+    font->monoWidth = (u32) font->face->max_advance_width >> 6;
+    font->monoHeight = (u32) font->face->max_advance_height >> 6;
+    SDL_Log("Mono dimensions = %d,%d", font->monoWidth, font->monoHeight);
     hashtable_init(&font->glyphTable, sizeof(Glyph), 256, NULL);
     LoadGlyphs(font, EN_START, EN_END);
     TextureAtlas_PackAndUpload(&font->atlas);
@@ -80,4 +84,10 @@ void Font_Destroy(Font* font)
         FT_Done_Face(font->face);
     hashtable_term(&font->glyphTable);
     TextureAtlas_Destroy(&font->atlas);
+}
+
+u32 Font_GetGlyphWidth(Font *font) {
+    const Glyph* glyph = (Glyph*) hashtable_items(&font->glyphTable);
+    assert(glyph != NULL);
+    return (u32) glyph->advance;
 }

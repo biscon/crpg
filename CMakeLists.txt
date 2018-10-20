@@ -98,7 +98,7 @@ set(GAME_SOURCE_FILES
         src/renderer/opengl_renderer.c
         src/renderer/opengl_renderer.h
         src/renderer/pixel_buffer.c
-        src/renderer/pixel_buffer.h src/renderer/font.c src/renderer/font.h src/renderer/texture_atlas.c src/renderer/texture_atlas.h src/util/hashtable.c)
+        src/renderer/pixel_buffer.h src/renderer/font.c src/renderer/font.h src/renderer/texture_atlas.c src/renderer/texture_atlas.h src/util/hashtable.c src/renderer/terminal.c src/renderer/terminal.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

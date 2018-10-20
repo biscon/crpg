@@ -13,6 +13,12 @@ void Store_Init(Store* c, size_t item_size)
     c->data = calloc(1, CONTAINER_INITIAL_SIZE * item_size);
 }
 
+void Store_Clear(Store* c)
+{
+    memset(c->data, 0, c->capacity * c->itemSize);
+    c->noItems = 0;
+}
+
 void Store_Destroy(Store *c)
 {
     //SDL_Log("Destroying container");
