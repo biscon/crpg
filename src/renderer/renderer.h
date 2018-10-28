@@ -15,7 +15,7 @@
 #define RENDERER_CMD_BUF_SIZE           KILOBYTES(128)
 #define RENDERER_VERTEX_BUF_SIZE        MEGABYTES(2)
 #define FLOATS_PER_VERTEX               8
-#define VERTS_PER_QUAD                  48
+#define VERTS_PER_QUAD                  6
 
 #define COLOR_TRANSPARENT               (vec4) {0.0f, 0.0f, 0.0f, 0.0f}
 #define COLOR_WHITE                     (vec4) {1.0f, 1.0f, 1.0f, 1.0f}

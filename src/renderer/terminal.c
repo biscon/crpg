@@ -121,12 +121,12 @@ void Term_Render(Terminal *term, float x, float y, RenderCmdBuffer *buffer)
                     .atlasId = c->atlasId
             };
             memcpy(atlasQuad.color, term->palette[cc[index].fgColorIdx].color, sizeof(vec4));
-            //atlasQuad.color[3] = 0.0f;
+            atlasQuad.color[3] = 1.0f;
             STORE_PUSHBACK(term->atlasQuadStore, &atlasQuad);
             //fx += c->advance
         }
     }
-    Render_PushQuadsCmd(buffer, term->quadStore.data, term->quadStore.noItems);
+    //Render_PushQuadsCmd(buffer, term->quadStore.data, term->quadStore.noItems);
     Render_PushAtlasQuadsCmd(buffer, &term->font->atlas, term->atlasQuadStore.data, term->atlasQuadStore.noItems);
 }
 

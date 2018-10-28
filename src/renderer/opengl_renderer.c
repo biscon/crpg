@@ -104,7 +104,7 @@ INTERNAL const char* texQuadFragmentSource = R"glsl(
                 outColor = texture(tex, Texcoord) * Color;
             } else {
                 float r = texture(tex, Texcoord).r;
-                outColor = Color * vec4(r, r, r, Color.a);
+                outColor = Color * vec4(r, r, r, r);
             }
         } else {
             outColor = Color;
@@ -249,6 +249,9 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
 
     u8 *cur_ptr = buf->commands;
     while(cur_ptr < buf->cmdOffset) {
+
+        //SDL_Log("Iteration %d", iteration);
+
         RenderCmd *command = (RenderCmd*) cur_ptr;
         switch(command->type)
         {
@@ -271,7 +274,7 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
             }
             case RCMD_TEX_QUAD: {
                 RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
-                //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
+                //SDL_Log("Rendering tex quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
                 cur_ptr += sizeof(RenderCmdQuads);
                 glUniform1i(uniformIsFontLoc, 0);
                 glUniform1i(uniformUseTextureLoc, 1);
@@ -281,11 +284,11 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
             }
             case RCMD_TEX_QUAD_ATLAS: {
                 RenderCmdQuads *cmd = (RenderCmdQuads*) cur_ptr;
-                //SDL_Log("Rendering quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld", cmd->offset, cmd->vertexCount, cmd->vertexOffset);
                 cur_ptr += sizeof(RenderCmdQuads);
                 i32 is_font = 0;
                 if(cmd->atlas->format == PBF_GREYSCALE)
                     is_font = 1;
+                //SDL_Log("Rendering atlas quad command offset = %ld, vertexcount = %ld, vertexoffset = %ld is_font = %d", cmd->offset, cmd->vertexCount, cmd->vertexOffset, is_font);
                 glUniform1i(uniformIsFontLoc, is_font);
                 glUniform1i(uniformUseTextureLoc, 1);
                 glBindTexture(GL_TEXTURE_2D, cmd->texId);
@@ -297,6 +300,7 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
             }
         }
     }
+    //exit(0);
 }
 
 bool OGL_UploadPNGTexture(const char *filename, bool filtering, u32 *texid) {

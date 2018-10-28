@@ -327,16 +327,28 @@ int main()
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
 
-        Term_Render(&term, 0, 0, &renderBuffer);
+
 
         Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
-        Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
+
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
+
         Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad3, 1);
 
-        //Render_PushText(&renderBuffer, &font, 50, 70, COLOR_WHITE, "SYSTEM READY.");
+
+        //Term_Render(&term, 200.0f, 200.0f, &renderBuffer);
+
+        Render_PushText(&renderBuffer, &font, 500, 350, COLOR_BLUE, "Clausorcisten");
+
+        Render_PushText(&renderBuffer, &font, 200, 150, COLOR_BLUE, "i");
+        Render_PushText(&renderBuffer, &font, 250, 450, COLOR_BLUE, "ilse");
+
+        Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
+
+        Render_PushText(&renderBuffer, &font, 200, 250, COLOR_MAGENTA, "SYSTEM READY. Doctor Yeti, tag en slapper!");
+
 
         OGL_RenderCmdBuffer(&renderBuffer);
 

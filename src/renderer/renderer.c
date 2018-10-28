@@ -50,7 +50,7 @@ void Render_PushQuadsCmd(RenderCmdBuffer* buf, Quad *quads, size_t count)
 {
     RenderCmdQuads cmd = {.type = RCMD_QUAD};
     cmd.offset = (size_t) (buf->quadVertsPtr - buf->quadVerts);
-    size_t byte_size = VERTS_PER_QUAD * sizeof(float);
+    size_t byte_size = VERTS_PER_QUAD * FLOATS_PER_VERTEX * sizeof(float);
     cmd.vertexOffset = (cmd.offset) / (FLOATS_PER_VERTEX * sizeof(float));
     cmd.vertexCount = count * VERTS_PER_QUAD;
 
@@ -89,7 +89,7 @@ void Render_PushTexturedQuadsCmd(RenderCmdBuffer* buf, u32 texid, Quad *quads, s
 {
     RenderCmdQuads cmd = {.type = RCMD_TEX_QUAD, .texId = texid, .atlas = NULL};
     cmd.offset = (size_t) (buf->quadVertsPtr - buf->quadVerts);
-    size_t byte_size = VERTS_PER_QUAD * sizeof(float);
+    size_t byte_size = VERTS_PER_QUAD * FLOATS_PER_VERTEX * sizeof(float);
     cmd.vertexOffset = (cmd.offset) / (FLOATS_PER_VERTEX * sizeof(float));
     cmd.vertexCount = count * VERTS_PER_QUAD;
 
@@ -135,7 +135,7 @@ void Render_PushAtlasQuadsCmd(RenderCmdBuffer *buf, TextureAtlas *atlas, AtlasQu
         .texId = atlas->textureId
     };
     cmd.offset = (size_t) (buf->quadVertsPtr - buf->quadVerts);
-    size_t byte_size = VERTS_PER_QUAD * sizeof(float);
+    size_t byte_size = VERTS_PER_QUAD * FLOATS_PER_VERTEX * sizeof(float);
     cmd.vertexOffset = (cmd.offset) / (FLOATS_PER_VERTEX * sizeof(float));
     cmd.vertexCount = count * VERTS_PER_QUAD;
 
