@@ -26,8 +26,6 @@ struct Font {
     u32                         size;
     hashtable_t                 glyphTable;
     TextureAtlas                atlas;
-    u32                         monoWidth;
-    u32                         monoHeight;
 };
 
 

@@ -29,6 +29,46 @@ void TextureAtlas_Create(TextureAtlas *atlas, i32 width, i32 height, PixelBuffer
     STORE_INIT(atlas->rectStore, sizeof(stbrp_rect));
 }
 
+void TextureAtlas_CreateFromSheet(TextureAtlas *atlas, i32 cellW, i32 cellH, PixelBuffer* sheet)
+{
+    memset(atlas, 0, sizeof(TextureAtlas));
+    atlas->width = sheet->width;
+    atlas->height = sheet->height;
+    atlas->format = sheet->format;
+    atlas->nextEntryId = 0;
+    i32 cols = (sheet->width / cellW);
+    i32 rows = (sheet->height / cellH);
+    atlas->noRects = cols * rows;
+    atlas->entryTable = calloc(1, sizeof(hashtable_t));
+    hashtable_init(atlas->entryTable, sizeof(TextureAtlasEntry), 256, NULL);
+    for(i32 y = 0; y < rows; ++y) {
+        for(i32 x = 0; x < cols; ++x) {
+            TextureAtlasEntry entry;
+            memset(&entry, 0, sizeof(TextureAtlasEntry));
+            entry.id = atlas->nextEntryId++;
+
+            entry.uvRect.left = remapFloat(0, (float) atlas->width, 0, 1, (float) (x * cellW));
+            entry.uvRect.right = remapFloat(0, (float) atlas->width, 0, 1,
+                                            (float) ((x * cellW) + cellW));
+            // texture space flips y axis just to piss you off :)
+            entry.uvRect.top = remapFloat(0, (float) atlas->height, 0, 1, (float) (y * cellH));
+            entry.uvRect.bottom = remapFloat(0, (float) atlas->height, 0, 1,
+                                             (float) ((y * cellH) + cellH));
+            hashtable_insert(atlas->entryTable, (HASHTABLE_U64) entry.id, &entry);
+        }
+    }
+    if (atlas->format == PBF_RGBA) {
+        if (!OGL_UploadTexture(sheet, false, &atlas->textureId)) {
+            SDL_Log("Texture atlas could not be uploaded");
+        }
+    } else {
+        if (!OGL_UploadTextureGreyscale(sheet, false, &atlas->textureId)) {
+            SDL_Log("Greyscale texture atlas could not be uploaded");
+        }
+    }
+    atlas->isUploaded = true;
+}
+
 void TextureAtlas_Destroy(TextureAtlas *atlas)
 {
     if(atlas->isUploaded) {
@@ -100,6 +140,7 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas) {
         TextureAtlasEntry *entry = hashtable_find(atlas->entryTable, (u32) cur_rect->id);
         assert(entry != NULL);
 
+
         entry->uvRect.left = remapFloat(0, (float) atlas->width, 0, 1, (float) cur_rect->x);
         entry->uvRect.right = remapFloat(0, (float) atlas->width, 0, 1,
                                          (float) (cur_rect->x + cur_rect->w));
@@ -107,6 +148,25 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas) {
         entry->uvRect.top = remapFloat(0, (float) atlas->height, 0, 1, (float) cur_rect->y);
         entry->uvRect.bottom = remapFloat(0, (float) atlas->height, 0, 1,
                                           (float) (cur_rect->y + cur_rect->h));
+
+
+/*
+        float cur_x = (float) cur_rect->x;
+        float cur_y = (float) cur_rect->y;
+        float cur_w = (float) cur_rect->w;
+        float cur_h = (float) cur_rect->h;
+
+        float atlas_w = (float) atlas->width;
+        float atlas_h = (float) atlas->height;
+
+        float pad = 0.375f;
+
+        entry->uvRect.left = (cur_x + pad) / atlas_w;
+        entry->uvRect.right = (cur_x + cur_w + pad) / atlas_w;
+
+        entry->uvRect.top = (cur_y + pad) / atlas_h;
+        entry->uvRect.bottom = (cur_y + cur_h + pad) / atlas_h;
+*/
 
         PixelBuffer_SimpleBlit(&entry->pixelBuffer, (uvec4) {0, 0, entry->pixelBuffer.width,
                                                              entry->pixelBuffer.height},
@@ -119,7 +179,7 @@ void TextureAtlas_PackAndUpload(TextureAtlas *atlas) {
             SDL_Log("Texture atlas could not be uploaded");
         }
     } else {
-        if (!OGL_UploadTextureGreyscale(&buffer, true, &atlas->textureId)) {
+        if (!OGL_UploadTextureGreyscale(&buffer, false, &atlas->textureId)) {
             SDL_Log("Greyscale texture atlas could not be uploaded");
         }
     }
@@ -135,3 +195,4 @@ void TextureAtlas_SetUVRect(TextureAtlas *atlas, u32 id, FloatRect *rect)
     assert(entry != NULL);
     *rect = entry->uvRect;
 }
+

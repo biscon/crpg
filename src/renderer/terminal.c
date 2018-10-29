@@ -36,7 +36,15 @@ void Term_Create(Terminal *term, u32 w, u32 h, Font *font)
     term->width = w;
     term->height = h;
     term->font = font;
-    term->charHeight = font->size;
+    //term->charHeight = font->size;
+    u32 cpLen = 1;
+    u32 cp = DecodeCodePoint(&cpLen, "H");
+    Glyph* c = hashtable_find(&term->font->glyphTable, (HASHTABLE_U64) cp);
+    assert(c != NULL);
+    term->charPadY = font->size - c->bearing[1] + 2;
+    //SDL_Log("font pady = %.2f", pady);
+    term->charHeight = font->size + term->charPadY + 2;
+
     term->charWidth = Font_GetGlyphWidth(font);
     term->buffer = calloc(1, w * h * sizeof(CharCell));
     term->showCursor = true;
@@ -45,6 +53,7 @@ void Term_Create(Terminal *term, u32 w, u32 h, Font *font)
     Term_Clear(term);
     STORE_INIT(term->quadStore, sizeof(Quad));
     STORE_INIT(term->atlasQuadStore, sizeof(AtlasQuad));
+
 }
 
 void Term_Destroy(Terminal *term)
@@ -90,8 +99,9 @@ void Term_Render(Terminal *term, float x, float y, RenderCmdBuffer *buffer)
 {
     STORE_CLEAR(term->quadStore);
     STORE_CLEAR(term->atlasQuadStore);
-    float fx = x;
-    float fy = y;
+    float chr_h = (float) term->charHeight;
+    float padY = (float) term->charPadY;
+
     for(i32 cy = 0; cy < term->height; ++cy) {
         for(i32 cx = 0; cx < term->width; ++cx) {
             CharCell* cc = (CharCell*) term->buffer;
@@ -108,10 +118,13 @@ void Term_Render(Terminal *term, float x, float y, RenderCmdBuffer *buffer)
             assert(c != NULL);
 
             float xp, yp, h, w;
-            xp = quad.left + c->bearing[0];
-            yp = quad.top  + term->charHeight - c->bearing[1];
             w = c->size[0];
             h = c->size[1];
+
+            xp = quad.left + c->bearing[0];
+            float baseline = chr_h - c->bearing[1];
+            yp = quad.top + baseline - padY ;
+
 
             AtlasQuad atlasQuad = {
                     .left    = xp,
@@ -126,7 +139,7 @@ void Term_Render(Terminal *term, float x, float y, RenderCmdBuffer *buffer)
             //fx += c->advance
         }
     }
-    //Render_PushQuadsCmd(buffer, term->quadStore.data, term->quadStore.noItems);
+    Render_PushQuadsCmd(buffer, term->quadStore.data, term->quadStore.noItems);
     Render_PushAtlasQuadsCmd(buffer, &term->font->atlas, term->atlasQuadStore.data, term->atlasQuadStore.noItems);
 }
 

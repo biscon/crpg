@@ -12,8 +12,8 @@
 #include <SDL.h>
 #include <glad.h>
 
-global_variable u32 ScreenWidth = 1280;
-global_variable u32 ScreenHeight = 720;
+global_variable u32 ScreenWidth = 1920;
+global_variable u32 ScreenHeight = 1080;
 global_variable SDL_Window* Window = NULL;
 global_variable SDL_GLContext Context = NULL;
 //global_variable SDL_Rect Viewport = {};
@@ -122,8 +122,8 @@ INTERNAL bool InitVideo()
     //SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     // request 4x MSAA
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     Window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenWidth, ScreenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
     if(Window == NULL)
@@ -263,7 +263,7 @@ int main()
     Encounter_Start(encounter);
 
     Quad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
-                        .left = 10, .top = 100, .right = 1270, .bottom = 610};
+                        .left = 0, .top = 0, .right = 1920, .bottom = 1080};
 
     Quad quad2 = {.color = {1.0f, 0.0f, 1.0f, 1.0f},
             .left = 100, .top = 400, .right = 1000, .bottom = 700};
@@ -274,23 +274,24 @@ int main()
 
     TextureAtlas atlas;
     TextureAtlas_Create(&atlas, 4096, 4096, PBF_RGBA);
-    u32 tex1 = TextureAtlas_AddImageFromPNG(&atlas, "assets/checker.png");
+    u32 tex1 = TextureAtlas_AddImageFromPNG(&atlas, "assets/sample.png");
     u32 tex2 = TextureAtlas_AddImageFromPNG(&atlas, "assets/brick.png");
     TextureAtlas_PackAndUpload(&atlas);
 
     AtlasQuad atlasquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex1,
-            .left = 200, .top = 200, .right = 530, .bottom = 530};
+            .left = 0, .top = 0, .right = 16, .bottom = 16};
 
-    AtlasQuad atlasquad2 = {.color = {1.0f, 1.0f, 1.0f, 0.50f}, .atlasId = tex2,
-            .left = 600, .top = 200, .right = 1000, .bottom = 600};
+    AtlasQuad atlasquad2 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex1,
+            .left = 16, .top = 16, .right = 32, .bottom = 32};
 
-    AtlasQuad atlasquad3 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex2,
-            .left = 1000, .top = 200, .right = 1275, .bottom = 600};
+    Quad texquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
+            .left = 0, .top = 0, .right = 1024, .bottom = 1024};
 
     Font font;
-    //Font_Create(&font, "assets/PressStart2P.ttf", 12);
-    //Font_Create(&font, "assets/square.ttf", 16);
-    Font_Create(&font, "assets/bigblue437.ttf", 24);
+    //Font_Create(&font, "assets/PressStart2P.ttf", 22);
+    Font_Create(&font, "assets/Inconsolata.otf", 24);
+    //Font_Create(&font, "assets/bigblue437.ttf", 18);
+    //Font_Create(&font, "assets/OpenSans-Regular.ttf", 24);
 
     Terminal term;
     Term_Create(&term, 80, 60, &font);
@@ -319,7 +320,7 @@ int main()
             secondsElapsedForFrame = GetTime() - oldTime;
         }
 
-        Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
+        //Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
         // render debug info
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -327,27 +328,23 @@ int main()
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
 
-
-
         Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
-
+        /*
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
-
         Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
-        Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
-        Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad3, 1);
 
+        */
 
-        //Term_Render(&term, 200.0f, 200.0f, &renderBuffer);
-
-        Render_PushText(&renderBuffer, &font, 500, 350, COLOR_BLUE, "Clausorcisten");
-
-        Render_PushText(&renderBuffer, &font, 200, 150, COLOR_BLUE, "i");
-        Render_PushText(&renderBuffer, &font, 250, 450, COLOR_BLUE, "ilse");
+        Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
 
         Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
 
-        Render_PushText(&renderBuffer, &font, 200, 250, COLOR_MAGENTA, "SYSTEM READY. Doctor Yeti, tag en slapper!");
+        Render_PushTexturedQuadsCmd(&renderBuffer, font.atlas.textureId, &texquad1, 1);
+
+        Render_PushText(&renderBuffer, &font, 5, 320, COLOR_RED, "SYSTEM READY. Doctor Yeti, tag en slapper!###¤");
+
+        //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
+        //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
 
 
         OGL_RenderCmdBuffer(&renderBuffer);

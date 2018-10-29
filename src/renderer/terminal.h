@@ -40,6 +40,7 @@ struct Terminal {
     Font*           font;
     u32             charWidth;
     u32             charHeight;
+    u32             charPadY;
     bool            showCursor;
     u32             curFgColorIdx;
     u32             curBgColorIdx;

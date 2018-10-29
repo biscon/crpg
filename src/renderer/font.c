@@ -24,6 +24,7 @@ FT_Library library;
 bool Font_Init() {
     i32 error;
     error = FT_Init_FreeType(&library);
+
     return error ? true : false; // 1 if error
 }
 
@@ -31,6 +32,7 @@ void Font_Shutdown() {
     FT_Done_FreeType(library);
 }
 
+/*
 INTERNAL
 void LoadGlyphs(Font *font, u32 cpStart, u32 cpEnd) {
     for (u32 cp = cpStart; cp <= cpEnd; cp += 1) {
@@ -42,8 +44,60 @@ void LoadGlyphs(Font *font, u32 cpStart, u32 cpEnd) {
         PixelBuffer pb;
         u32 w = font->face->glyph->bitmap.width;
         u32 h = font->face->glyph->bitmap.rows;
+
         PixelBuffer_Create(&pb, w, h, PBF_GREYSCALE);
         memcpy(pb.pixels, font->face->glyph->bitmap.buffer, (size_t) w*h);
+        u32 atlas_id = TextureAtlas_AddImage(&font->atlas, &pb);
+        PixelBuffer_Destroy(&pb);
+        Glyph ch = {
+                atlas_id,
+                (u32) (font->face->glyph->advance.x >> 6),
+        };
+        ch.size[0] = w;
+        ch.size[1] = h;
+        ch.bearing[0] = font->face->glyph->bitmap_left;
+        ch.bearing[1] = font->face->glyph->bitmap_top;
+        hashtable_insert(&font->glyphTable, (HASHTABLE_U64) cp, &ch);
+    }
+}
+ */
+
+INTERNAL
+void LoadGlyphs(Font *font, u32 cpStart, u32 cpEnd) {
+    for (u32 cp = cpStart; cp <= cpEnd; cp += 1) {
+
+        FT_UInt index = FT_Get_Char_Index(font->face, cp);
+        FT_Error err = FT_Load_Glyph(font->face, index, FT_LOAD_DEFAULT | FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT);
+        if (err) {
+            SDL_Log("Failed to load glyph for codepoint: 0x%x\n", cp);
+            continue;
+        }
+        //FT_Glyph_Metrics metrics = font->face->glyph->metrics;
+
+        PixelBuffer pb;
+        u32 w = font->face->glyph->bitmap.width;
+        u32 h = font->face->glyph->bitmap.rows;
+
+        SDL_Log("Glyph w,h %d,%d", w, h);
+
+        //PixelBuffer_Create(&pb, w+2, h+2, PBF_GREYSCALE);
+        PixelBuffer_Create(&pb, w, h, PBF_GREYSCALE);
+        //u8* pixels = (u8*) pb.pixels + pb.width + 1;
+        u8* pixels = (u8*) pb.pixels;
+        u8* src_buf = font->face->glyph->bitmap.buffer;
+
+        for(i32 y = 0; y < h; ++y) {
+            for(i32 x = 0; x < w; ++x) {
+                *pixels = src_buf[(y*w)+x];
+                pixels++;
+            }
+            //pixels += 2;
+        }
+
+        //w+=2;
+        //h+=2;
+
+        //memcpy(pb.pixels, dst_buf, (size_t) w*h);
         u32 atlas_id = TextureAtlas_AddImage(&font->atlas, &pb);
         PixelBuffer_Destroy(&pb);
         Glyph ch = {
@@ -60,7 +114,7 @@ void LoadGlyphs(Font *font, u32 cpStart, u32 cpEnd) {
 
 bool Font_Create(Font *font, const char *path, u32 size)
 {
-    TextureAtlas_Create(&font->atlas, 4096, 4096, PBF_GREYSCALE);
+    TextureAtlas_Create(&font->atlas, 1024, 1024, PBF_GREYSCALE);
     FT_Face face;
     if (FT_New_Face(library, path, 0, &face))
         return false;
@@ -68,9 +122,9 @@ bool Font_Create(Font *font, const char *path, u32 size)
         return false;
     font->face = face;
     font->size = size;
-    font->monoWidth = (u32) font->face->max_advance_width >> 6;
-    font->monoHeight = (u32) font->face->max_advance_height >> 6;
-    SDL_Log("Mono dimensions = %d,%d", font->monoWidth, font->monoHeight);
+
+    SDL_Log("Creating font size %d", font->size);
+
     hashtable_init(&font->glyphTable, sizeof(Glyph), 256, NULL);
     LoadGlyphs(font, EN_START, EN_END);
     TextureAtlas_PackAndUpload(&font->atlas);

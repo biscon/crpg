@@ -229,6 +229,8 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
 
     glm_mat4_identity(model);
     glm_mat4_identity(view);
+    //glm_translate_x(model, 0.5f);
+    //glm_translate_y(model, -0.5f);
     glViewport(0,0, screenWidth, screenHeight);
     glm_ortho(0, screenWidth, screenHeight, 0, -100.0f, 100.0f, proj);
 
@@ -346,9 +348,9 @@ bool OGL_UploadTexture(PixelBuffer *pb, bool filtering, u32 *texid)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
         */
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        //glGenerateMipmap(GL_TEXTURE_2D);
     }
 
 

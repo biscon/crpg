@@ -40,6 +40,7 @@ struct TextureAtlas {
 };
 
 void    TextureAtlas_Create(TextureAtlas *atlas, i32 width, i32 height, PixelBufferFormat format);
+void    TextureAtlas_CreateFromSheet(TextureAtlas *atlas, i32 cellW, i32 cellH, PixelBuffer* sheet);
 void    TextureAtlas_Destroy(TextureAtlas *atlas);
 u32     TextureAtlas_AddImageFromPNG(TextureAtlas *atlas, const char *filename);
 u32     TextureAtlas_AddImage(TextureAtlas *atlas, PixelBuffer* src_buf);
