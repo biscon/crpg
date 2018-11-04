@@ -89,7 +89,7 @@ void Term_Print(Terminal *term, i32 x, i32 y, const char *str)
         CharCell* cc = (CharCell*) term->buffer;
         i32 index = y * term->width + x;
         cc[index].cp = (u8) cp;
-        cc[index].bgColor = term->curBgColor;
+        //cc[index].bgColor = term->curBgColor;
         cc[index].fgColor = term->curFgColor;
         x += 1;
         if(x >= term->width) {

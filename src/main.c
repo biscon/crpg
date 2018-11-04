@@ -148,7 +148,7 @@ INTERNAL bool InitVideo()
     SDL_Log("Version GLSL:    %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     // request vsync
-    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(1);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     //glClearColor(135.0f/255.0f, 206.0f/255.0f, 250.0f/255.0f, 1.0f);
@@ -213,6 +213,7 @@ int main()
 
     i32 monitorRefreshHz = displayMode.refresh_rate;
     i32 gameUpdateHz = monitorRefreshHz;
+    //i32 gameUpdateHz = 620;
     double targetSecondsPerFrame = 1.0 / (double) gameUpdateHz;
 
     PerformanceFrequency = SDL_GetPerformanceFrequency();
@@ -257,7 +258,10 @@ int main()
     memset(&interface, 0, sizeof(CombatInterface));
     interface.onBeginRound = onBeginRound;
 
-    Encounter *encounter = Encounter_Create(&interface);
+    RexImage rexImage;
+    Rex_CreateFromFile(&rexImage, "assets/map.xp");
+
+    Encounter *encounter = Encounter_Create(&interface, &rexImage);
     Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM);
     Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM);
     Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
@@ -303,11 +307,7 @@ int main()
     Terminal term;
     Term_Create(&term, 80, 60, 18, 18, 0, &fontAtlas);
 
-    RexImage rexImage;
-    Rex_CreateFromFile(&rexImage, "assets/desert.xp");
-
-    Term_PrintRexImage(&term, &rexImage, 0, 0);
-    Term_Print(&term, 0, 0, "Hello World");
+    //Term_Print(&term, 0, 0, "Hello World");
 
     while(!ShouldQuit)
     {
@@ -331,10 +331,10 @@ int main()
             secondsElapsedForFrame = GetTime() - oldTime;
         }
 
-        //Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
+        Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
-        char buf[100];
-        sprintf(buf, "secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
+        char buf[32];
+        sprintf(buf, "FPS %.2f", 1.0/secondsElapsedForFrame);
         // render debug info
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -349,7 +349,9 @@ int main()
         */
 
         //Term_SetBGColor(&term, TERM_COL_RED);
-        //Term_Print(&term, 0, 0, buf);
+
+        Term_PrintRexImage(&term, &rexImage, 0, 0);
+        Term_Print(&term, 0, 0, buf);
 
         Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
 

@@ -6,6 +6,7 @@
 #define GAME_COMBAT_H
 
 #include "entity.h"
+#include "combat_map.h"
 #include <vector.h>
 #include <list.h>
 
@@ -29,7 +30,6 @@ typedef struct CombatEvent CombatEvent;
 typedef struct CombatInterface CombatInterface;
 typedef struct AIInterface AIInterface;
 typedef struct Combatant Combatant;
-typedef struct Position Position;
 typedef struct Path Path;
 
 typedef enum {
@@ -44,10 +44,7 @@ typedef enum {
                         ES_PAUSED,
 } EncounterState;
 
-struct Position {
-    i32                 x;
-    i32                 y;
-};
+
 
 typedef struct {
     Combatant *closest;
@@ -78,8 +75,9 @@ typedef struct {
     i32                 eventStackTop;
     CombatInterface*    combatInterface;
     i32                 curCombatantId;
-    Combatant*          grid[RPG_GRID_W][RPG_GRID_H];
-    Position            nodeGrid[RPG_GRID_W][RPG_GRID_H];
+    //Combatant*          grid[RPG_GRID_W][RPG_GRID_H];
+    //Position            nodeGrid[RPG_GRID_W][RPG_GRID_H];
+    CombatMap           combatMap;
 } Encounter;
 
 struct CombatEvent {
@@ -100,7 +98,7 @@ struct AIInterface {
     void                (*onAttack)             (Encounter* enc, Combatant *combatant);
 };
 
-Encounter*  Encounter_Create(CombatInterface* combatInterface);
+Encounter*  Encounter_Create(CombatInterface* combatInterface, RexImage* maptemplate);
 void        Encounter_Destroy(Encounter* enc);
 void        Encounter_AddEntity(Encounter* enc, Entity* entity, Team team);
 void        Encounter_RemoveEntity(Encounter* enc, Entity* entity);

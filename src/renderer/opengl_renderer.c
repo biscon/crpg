@@ -229,8 +229,16 @@ void OGL_RenderCmdBuffer(RenderCmdBuffer *buf)
 
     glm_mat4_identity(model);
     glm_mat4_identity(view);
-    //glm_translate_x(model, 0.5f);
-    //glm_translate_y(model, -0.5f);
+
+    /*
+    glm_translate_x(model, screenWidth/2);
+    glm_translate_y(model, screenHeight/2);
+    //glm_rotate_z(model, xmod, model);
+    glm_scale_uni(model, zoom);
+    glm_translate_x(model, -(screenWidth/2));
+    glm_translate_y(model, -(screenHeight/2));
+    //glm_translate_y(model, pan);
+     */
     glViewport(0,0, screenWidth, screenHeight);
     glm_ortho(0, screenWidth, screenHeight, 0, -100.0f, 100.0f, proj);
 

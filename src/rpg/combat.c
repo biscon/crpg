@@ -558,13 +558,14 @@ INTERNAL void DefaultAI_OnAttack(Encounter* enc, Combatant *combatant)
  * Implementation of external interface
  */
 
-Encounter *Encounter_Create(CombatInterface* combatInterface)
+Encounter *Encounter_Create(CombatInterface* combatInterface, RexImage* maptemplate)
 {
     Encounter *enc = calloc(1, sizeof(Encounter));
     VectorAlloc(&enc->combatants);
     enc->eventStack = calloc(RPG_COMBAT_EVENT_STACK_SIZE, sizeof(CombatEvent));
     enc->eventStackTop = -1;
     enc->combatInterface = combatInterface;
+    CombatMap_CreateFromTemplate(&enc->combatMap, maptemplate);
     // initialize pathfinding node grid, could prolly be done smarter
     for(i32 x = 0; x < RPG_GRID_W; ++x) {
         for (i32 y = 0; y < RPG_GRID_H; ++y) {
@@ -590,6 +591,7 @@ void Encounter_Destroy(Encounter *enc)
     VECTOR_FREE(enc->combatants);
     if(enc->eventStack)
         free(enc->eventStack);
+    CombatMap_Destroy(&enc->combatMap);
     free(enc);
 }
 
