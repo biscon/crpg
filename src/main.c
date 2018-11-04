@@ -7,12 +7,13 @@
 #include "rpg/rpg_log.h"
 #include "renderer/opengl_renderer.h"
 #include "renderer/terminal.h"
+#include "util/rex.h"
 #include <memory.h>
 
 #include <SDL.h>
 #include <glad.h>
 
-global_variable u32 ScreenWidth = 1920;
+global_variable u32 ScreenWidth = 1440;
 global_variable u32 ScreenHeight = 1080;
 global_variable SDL_Window* Window = NULL;
 global_variable SDL_GLContext Context = NULL;
@@ -285,7 +286,7 @@ int main()
             .left = 16, .top = 16, .right = 32, .bottom = 32};
 
     Quad texquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
-            .left = 0, .top = 0, .right = 1024, .bottom = 1024};
+            .left = 0, .top = 0, .right = 288, .bottom = 112};
 
     Font font;
     //Font_Create(&font, "assets/PressStart2P.ttf", 22);
@@ -293,10 +294,20 @@ int main()
     //Font_Create(&font, "assets/bigblue437.ttf", 18);
     //Font_Create(&font, "assets/OpenSans-Regular.ttf", 24);
 
+    PixelBuffer pb;
+    PixelBuffer_CreateFromPNG(&pb, "assets/cp437_18x18.png");
+    TextureAtlas fontAtlas;
+    TextureAtlas_CreateFromSheet(&fontAtlas, 18, 18, &pb);
+    PixelBuffer_Destroy(&pb);
+
     Terminal term;
-    Term_Create(&term, 80, 60, &font);
-    Term_SetBGColor(&term, TERM_COL_RED);
-    Term_Print(&term, 0, 0,"Hej Per, har du savnet mig?");
+    Term_Create(&term, 80, 60, 18, 18, 0, &fontAtlas);
+
+    RexImage rexImage;
+    Rex_CreateFromFile(&rexImage, "assets/desert.xp");
+
+    Term_PrintRexImage(&term, &rexImage, 0, 0);
+    Term_Print(&term, 0, 0, "Hello World");
 
     while(!ShouldQuit)
     {
@@ -322,26 +333,31 @@ int main()
 
         //Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
+        char buf[100];
+        sprintf(buf, "secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
         // render debug info
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
 
-        Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
+        //Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
         /*
         Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
         Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
 
         */
 
+        //Term_SetBGColor(&term, TERM_COL_RED);
+        //Term_Print(&term, 0, 0, buf);
+
         Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
 
-        Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
+        //Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
 
-        Render_PushTexturedQuadsCmd(&renderBuffer, font.atlas.textureId, &texquad1, 1);
+        //Render_PushTexturedQuadsCmd(&renderBuffer, fontAtlas.textureId, &texquad1, 1);
 
-        Render_PushText(&renderBuffer, &font, 5, 320, COLOR_RED, "SYSTEM READY. Doctor Yeti, tag en slapper!###¤");
+        //Render_PushText(&renderBuffer, &font, 5, 320, COLOR_RED, "SYSTEM READY. Doctor Yeti, tag en slapper!###¤");
 
         //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
         //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
@@ -360,7 +376,8 @@ int main()
 
     RPG_ShutdownContext(&rpgContext);
 
-
+    Rex_Destroy(&rexImage);
+    TextureAtlas_Destroy(&fontAtlas);
     Term_Destroy(&term);
 
     Font_Destroy(&font);

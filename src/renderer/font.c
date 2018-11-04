@@ -78,7 +78,7 @@ void LoadGlyphs(Font *font, u32 cpStart, u32 cpEnd) {
         u32 w = font->face->glyph->bitmap.width;
         u32 h = font->face->glyph->bitmap.rows;
 
-        SDL_Log("Glyph w,h %d,%d", w, h);
+        //SDL_Log("Glyph w,h %d,%d", w, h);
 
         //PixelBuffer_Create(&pb, w+2, h+2, PBF_GREYSCALE);
         PixelBuffer_Create(&pb, w, h, PBF_GREYSCALE);

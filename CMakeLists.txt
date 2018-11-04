@@ -19,10 +19,11 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "../")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "../")
 
+find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(Freetype REQUIRED)
-include_directories(${SDL2_INCLUDE_DIR} ${GLM_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/include)
+include_directories(${SDL2_INCLUDE_DIR} ${GLM_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/include ${ZLIB_INCLUDE_DIRS})
 #message(0, ${FREETYPE_INCLUDE_DIRS})
 
 set(CGLM_SOURCE_FILES
@@ -57,7 +58,7 @@ set(UTIL_SOURCE_FILES
         src/include/list.h
         src/include/stb_rect_pack.h
         src/util/lodepng.h
-        src/util/lodepng.c src/util/math_util.c src/util/math_util.h)
+        src/util/lodepng.c src/util/math_util.c src/util/math_util.h src/util/rex.c src/util/rex.h)
 
 set(GAME_SOURCE_FILES
         src/include/defs.h
@@ -102,4 +103,4 @@ set(GAME_SOURCE_FILES
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 
-target_link_libraries(game m ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${FREETYPE_LIBRARIES})
+target_link_libraries(game m ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${FREETYPE_LIBRARIES} ${ZLIB_LIBRARIES})
