@@ -29,6 +29,6 @@
 
 #define RPG_CRIT_MODIFIER               1.5
 
-#define RPG_GRID_W                      9
-#define RPG_GRID_H                      4
+//#define RPG_GRID_W                      9
+//#define RPG_GRID_H                      4
 #endif //GAME_RPG_DEFS_H

@@ -6,12 +6,13 @@
 #define GAME_COMBAT_MAP_H
 
 #include <defs.h>
+#include <list.h>
 #include "../util/rex.h"
 
 typedef struct Position Position;
 typedef struct CombatMap CombatMap;
 typedef struct CMTile CMTile;
-
+typedef struct Path Path;
 
 
 typedef enum {
@@ -26,6 +27,12 @@ typedef enum {
 struct Position {
     i32             x;
     i32             y;
+};
+
+struct Path {
+    ListNode*       stepList; // List of Position structs
+    i32             steps;
+    i32             movesLeft;
 };
 
 struct CMTile {
@@ -45,5 +52,13 @@ void        CombatMap_Destroy(CombatMap* map);
 CMTile*     CombatMap_GetTileAt(CombatMap* map, u32 x, u32 y);
 void        CombatMap_ReserveFriendlyStartPos(CombatMap* map, Position* pos);
 void        CombatMap_ReserveHostileStartPos(CombatMap *map, Position *pos);
+bool        CombatMap_IsOccupied(CombatMap* map, u32 x, u32 y);
+void        CombatMap_SetOccupied(CombatMap* map, u32 x, u32 y, bool occupied);
+bool        CombatMap_IsWalkable(CombatMap* map, u32 x, u32 y);
+void        CombatMap_FindClosestAdjacentUnoccupiedPosition(CombatMap *map, const Position* target,
+                                                            const Position* attacker, Position* result);
+// pathfinding
 
+Path*       CombatMap_CreatePath(CombatMap* map, Position *p1, Position *p2);
+void        CombatMap_DestroyPath(Path* path);
 #endif //GAME_COMBAT_MAP_H

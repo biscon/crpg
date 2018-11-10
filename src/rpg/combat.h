@@ -30,7 +30,6 @@ typedef struct CombatEvent CombatEvent;
 typedef struct CombatInterface CombatInterface;
 typedef struct AIInterface AIInterface;
 typedef struct Combatant Combatant;
-typedef struct Path Path;
 
 typedef enum {
                         ENC_PLAYER_TEAM,

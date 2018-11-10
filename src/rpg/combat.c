@@ -12,18 +12,10 @@
 #include "dice.h"
 #include "entity.h"
 #include "attack.h"
-#include "AStar.h"
 
 /*
  * Internal structures
  */
-
-struct Path {
- ListNode*  stepList; // List of Position structs
- i32        steps;
- i32        movesLeft;
-};
-
 
 /*
  * Internal functions
@@ -104,168 +96,6 @@ INTERNAL void FindClosestEnemy(Encounter* enc, const Combatant* c, DistQueryResu
     }
 }
 
-/*
- * Pathfinding
- * If introducing diagonals remember to set edge coast to 1.4f
- */
-INTERNAL void GetNodeNeighbors(ASNeighborList neighbors, void *node, void *context)
-{
-    Encounter* enc = (Encounter*) context;
-    Position* pos = (Position*) node;
-    i32 gx, gy;
-    //RPG_LOG("GetNodeNeighbors query node at %d,%d\n", pos->x, pos->y);
-    if(pos->x >= 1) {   // add left
-        //RPG_LOG("Adding left %d,%d\n", pos->x-1, pos->y);
-        gx = pos->x-1;
-        gy = pos->y;
-        if(enc->grid[gx][gy] == NULL)   // check that the tile isn't occupied
-            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
-    }
-    if(pos->x <= RPG_GRID_W-2) {    // add right
-        //RPG_LOG("Adding right %d,%d\n", pos->x+1, pos->y);
-        gx = pos->x+1;
-        gy = pos->y;
-        if(enc->grid[gx][gy] == NULL)
-            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
-    }
-    if(pos->y >= 1) {   // add top
-        //RPG_LOG("Adding top %d,%d\n", pos->x, pos->y-1);
-        gx = pos->x;
-        gy = pos->y-1;
-        if(enc->grid[gx][gy] == NULL)
-            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
-    }
-    if(pos->y <= RPG_GRID_H-2) {   // add bottom
-        //RPG_LOG("Adding bottom %d,%d\n", pos->x, pos->y+1);
-        gx = pos->x;
-        gy = pos->y+1;
-        if(enc->grid[gx][gy] == NULL)
-            ASNeighborListAdd(neighbors, &enc->nodeGrid[gx][gy], 1.0f);
-    }
-}
-
-INTERNAL float GetPathCostHeuristic(void *fromNode, void *toNode, void *context)
-{
-    Position* from = (Position*) fromNode;
-    Position* to = (Position*) toNode;
-    float res = (float) fabs(sqrt(GetDistanceSquared(from, to)));
-    //RPG_LOG("Returning distance heuristic (%d,%d --> %d,%d) %f\n", from->x, from->y, to->x, to->y, res);
-    return res;
-}
-
-// TODO this only finds free tiles immediately around an enemy, to support moving partially
-// towards enemies in a turn it would be smarter to find an incomplete path with a-star
-INTERNAL void FindClosestAdjacentUnoccupiedPosition(Encounter* enc, Combatant* attacker,
-                                                    Combatant* target, Position* result)
-{
-    Position *pos = &target->position;
-    i32 gx, gy;
-    // go through each sides, if occupied find distance and choose the largest
-    // this is faster than doing jamming them in a container and sorting :)
-    i32 mindist = INT32_MAX;
-    Position minpos = {-1, -1};
-
-    if(pos->x >= 1) {   // left
-        gx = pos->x-1;
-        gy = pos->y;
-        if(enc->grid[gx][gy] == NULL) {   // check that the tile isn't occupied
-            Position target_pos = {.x = gx, .y = gy};
-            i32 dist = GetDistance(&target_pos, &attacker->position);
-            //RPG_LOG("left %d,%d distance %d\n", gx, gy, dist);
-            if(dist < mindist) {
-                minpos = target_pos;
-                mindist = dist;
-            }
-        }
-    }
-    if(pos->x <= RPG_GRID_W-2) {    // right
-        gx = pos->x+1;
-        gy = pos->y;
-        if(enc->grid[gx][gy] == NULL) {
-            Position target_pos = {.x = gx, .y = gy};
-            i32 dist = GetDistance(&target_pos, &attacker->position);
-            //RPG_LOG("right %d,%d distance %d\n", gx, gy, dist);
-            if(dist < mindist) {
-                minpos = target_pos;
-                mindist = dist;
-            }
-        }
-    }
-    if(pos->y >= 1) {   // top
-        gx = pos->x;
-        gy = pos->y-1;
-        if(enc->grid[gx][gy] == NULL) {
-            Position target_pos = {.x = gx, .y = gy};
-            i32 dist = GetDistance(&target_pos, &attacker->position);
-            //RPG_LOG("top %d,%d distance %d\n", gx, gy, dist);
-            if(dist < mindist) {
-                minpos = target_pos;
-                mindist = dist;
-            }
-        }
-    }
-    if(pos->y <= RPG_GRID_H-2) {   // bottom
-        gx = pos->x;
-        gy = pos->y+1;
-        if(enc->grid[gx][gy] == NULL) {
-            Position target_pos = {.x = gx, .y = gy};
-            i32 dist = GetDistance(&target_pos, &attacker->position);
-            //RPG_LOG("bottom %d,%d distance %d\n", gx, gy, dist);
-            if(dist < mindist) {
-                minpos = target_pos;
-                mindist = dist;
-            }
-        }
-    }
-    if(mindist != INT32_MAX) {
-        result->x = minpos.x;
-        result->y = minpos.y;
-    } else {
-        result->x = INT32_MAX;
-        result->y = INT32_MAX;
-    }
-}
-
-INTERNAL Path* CreatePathBetweenPositions(Encounter *enc, Position *p1, Position *p2)
-{
-    ASPathNodeSource source;
-    memset(&source, 0, sizeof(ASPathNodeSource));
-    source.nodeSize = sizeof(Position*);
-    source.nodeNeighbors = GetNodeNeighbors;
-    source.pathCostHeuristic = GetPathCostHeuristic;
-    void *from = &enc->nodeGrid[p1->x][p1->y];
-    void *to = &enc->nodeGrid[p2->x][p2->y];
-    ASPath path = ASPathCreate(&source, enc, from, to);
-    if(path) {
-        RPG_LOG("A path was found between %d,%d and %d,%d (steps: %d)\n", p1->x, p1->y, p2->x, p2->y, ASPathGetCount(path));
-        Path *result = calloc(1, sizeof(Path));
-        result->steps = (i32) ASPathGetCount(path);
-        for(i32 i = result->steps-1; i > 0 ; i--) {
-            Position* oldnode = (Position*) ASPathGetNode(path, (size_t) i);
-            Position* newnode = calloc(1, sizeof(Position));
-            newnode->x = oldnode->x;
-            newnode->y = oldnode->y;
-            LIST_PUSH(result->stepList, newnode);
-            RPG_LOG("\t\tStep %d:\t%d,%d\n", i, newnode->x, newnode->y);
-        }
-        ASPathDestroy(path);
-        return result;
-    } else {
-        RPG_LOG("Pathfinding failed for reasons unknown :/\n");
-    }
-    return NULL;
-}
-
-INTERNAL void DestroyPath(Path* path)
-{
-    ListNode* cur = path->stepList;
-    while(cur != NULL) {
-        free(cur->data);
-        cur = cur->next;
-    }
-    LIST_DESTROY(path->stepList);
-    free(path);
-}
 /*
  * Action implementations
  */
@@ -414,15 +244,16 @@ INTERNAL u32 Action_Move(Encounter *enc, CombatEvent* event)
     Position* step = LIST_POP(c->curPath->stepList, Position*);
     if(step) {
         RPG_LOG("Moving %s to %d,%d\n", c->entity->name, step->x, step->y);
-        assert(step->x >= 0 && step->x < RPG_GRID_W && step->y >= 0 && step->y < RPG_GRID_H);
+        //assert(step->x >= 0 && step->x < RPG_GRID_W && step->y >= 0 && step->y < RPG_GRID_H);
+        CombatMap_SetOccupied(&enc->combatMap, c->position.x, c->position.y, false);
         c->position.x = step->x;
         c->position.y = step->y;
-        enc->grid[step->x][step->y] = c;
+        CombatMap_SetOccupied(&enc->combatMap, c->position.x, c->position.y, true);
         c->curPath->movesLeft--;
         free(step);
         if(c->curPath->movesLeft == 0) {
             RPG_LOG("Combatant %s has used up his moves\n", c->entity->name);
-            DestroyPath(c->curPath);
+            CombatMap_DestroyPath(c->curPath);
             c->curPath = NULL;
             AIInterface *ai = c->aiInterface;
             assert(ai != NULL);
@@ -433,7 +264,7 @@ INTERNAL u32 Action_Move(Encounter *enc, CombatEvent* event)
         }
     } else {
         RPG_LOG("Combatant %s finished moving\n", c->entity->name);
-        DestroyPath(c->curPath);
+        CombatMap_DestroyPath(c->curPath);
         c->curPath = NULL;
         AIInterface *ai = c->aiInterface;
         assert(ai != NULL);
@@ -510,10 +341,12 @@ INTERNAL void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
             RPG_LOG("Combatant %s can't hit enemy and must move closer.\n", combatant->entity->name);
             // create a path to the nearest enemy and move closer
             Position pos;
-            FindClosestAdjacentUnoccupiedPosition(enc, combatant, target, &pos);
+            CombatMap_FindClosestAdjacentUnoccupiedPosition(&enc->combatMap, &target->position, &combatant->position, &pos);
+
+            //FindClosestAdjacentUnoccupiedPosition(enc, combatant, target, &pos);
             if(pos.x != INT32_MAX && pos.y != INT32_MAX) {
                 RPG_LOG("Found closest unoccupied position to enemy %s at %d,%d\n", target->entity->name, pos.x, pos.y);
-                Path* path = CreatePathBetweenPositions(enc, &combatant->position, &pos);
+                Path* path = CombatMap_CreatePath(&enc->combatMap, &combatant->position, &pos);
                 if(path) {
                     RPG_LOG("Path created to %d,%d, moving...\n", pos.x, pos.y);
                     path->movesLeft = combatant->movesPerTurn;
@@ -566,13 +399,6 @@ Encounter *Encounter_Create(CombatInterface* combatInterface, RexImage* maptempl
     enc->eventStackTop = -1;
     enc->combatInterface = combatInterface;
     CombatMap_CreateFromTemplate(&enc->combatMap, maptemplate);
-    // initialize pathfinding node grid, could prolly be done smarter
-    for(i32 x = 0; x < RPG_GRID_W; ++x) {
-        for (i32 y = 0; y < RPG_GRID_H; ++y) {
-            enc->nodeGrid[x][y].x = x;
-            enc->nodeGrid[x][y].y = y;
-        }
-    }
     return enc;
 }
 
@@ -647,46 +473,14 @@ void Encounter_Update(Encounter *enc, u64 time_ms)
 
 INTERNAL void PlaceHostileOnGrid(Encounter *enc, Combatant *enemy)
 {
-    i32 offx = RPG_GRID_W-4;
-    i32 offy = (RPG_GRID_H/2)-2;
-    for(i32 x = 0; x < 4; ++x) {
-        for(i32 y = 0; y < 4; ++y) {
-            i32 gx = offx + x;
-            i32 gy = offy + y;
-            //RPG_LOG("Scanning grid pos %d,%d\n", offx + x, offy + y);
-            if(enc->grid[gx][gy] == NULL)
-            {
-                enc->grid[gx][gy] = enemy;
-                enemy->position.x = gx;
-                enemy->position.y = gy;
-                RPG_LOG("Placing enemy combatant %s at pos %d,%d\n", enemy->entity->name, gx, gy);
-                return;
-            }
-        }
-    }
-    RPG_LOG("Could not place enemy combatant %s!!\n", enemy->entity->name);
+    CombatMap_ReserveHostileStartPos(&enc->combatMap, &enemy->position);
+    RPG_LOG("Placing enemy combatant %s at pos %d,%d\n", enemy->entity->name, enemy->position.x, enemy->position.y);
 }
 
 INTERNAL void PlaceFriendlyOnGrid(Encounter *enc, Combatant *c)
 {
-    i32 offx = 0;
-    i32 offy = (RPG_GRID_H/2)-2;
-    for(i32 x = 3; x >= 0; --x) {
-        for(i32 y = 0; y < 4; ++y) {
-            i32 gx = offx + x;
-            i32 gy = offy + y;
-            //RPG_LOG("Scanning grid pos %d,%d\n", offx + x, offy + y);
-            if(enc->grid[gx][gy] == NULL)
-            {
-                enc->grid[gx][gy] = c;
-                c->position.x = gx;
-                c->position.y = gy;
-                RPG_LOG("Placing combatant %s at pos %d,%d\n", c->entity->name, gx, gy);
-                return;
-            }
-        }
-    }
-    RPG_LOG("Could not place combatant %s!!\n", c->entity->name);
+    CombatMap_ReserveFriendlyStartPos(&enc->combatMap, &c->position);
+    RPG_LOG("Placing combatant %s at pos %d,%d\n", c->entity->name, c->position.x, c->position.y);
 }
 
 
