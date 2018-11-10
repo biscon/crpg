@@ -105,6 +105,7 @@ void        Encounter_Update(Encounter* enc, u64 time_ms);
 void        Encounter_Start(Encounter* enc);
 void        Encounter_Pause(Encounter* enc);
 void        Encounter_Resume(Encounter* enc);
+void        Encounter_Render(Encounter* enc, Terminal* term);
 
 
 #endif //GAME_COMBAT_H

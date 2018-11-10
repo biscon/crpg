@@ -349,8 +349,8 @@ int main()
         */
 
         //Term_SetBGColor(&term, TERM_COL_RED);
-
-        Term_PrintRexImage(&term, &rexImage, 0, 0);
+        Encounter_Render(encounter, &term);
+        //Term_PrintRexImage(&term, &rexImage, 0, 0);
         Term_Print(&term, 0, 0, buf);
 
         Term_Render(&term, 0.0f, 0.0f, &renderBuffer);

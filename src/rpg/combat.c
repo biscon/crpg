@@ -270,7 +270,7 @@ INTERNAL u32 Action_Move(Encounter *enc, CombatEvent* event)
         assert(ai != NULL);
         ai->onDecideAction(enc, c);
     }
-    return 1000;
+    return 500;
 }
 
 /*
@@ -516,4 +516,18 @@ void Encounter_Pause(Encounter *enc)
 
 void Encounter_Resume(Encounter *enc) {
     enc->state = ES_RUNNING;
+}
+
+void Encounter_Render(Encounter *enc, Terminal *term) {
+    CombatMap_Render(&enc->combatMap, term);
+    // render combatants
+    for(i32 i = 0; i < VECTOR_SIZE(enc->combatants); ++i) {
+        Combatant *c = VECTOR_GET(enc->combatants, Combatant*, i);
+        if(c->team == ENC_PLAYER_TEAM) {
+            Term_SetXYNoBG(term, '@', c->position.x, c->position.y, MAP_COL_FRIENDLY);
+        }
+        if(c->team == ENC_ENEMY_TEAM) {
+            Term_SetXYNoBG(term, 'E', c->position.x, c->position.y, MAP_COL_HOSTILE);
+        }
+    }
 }

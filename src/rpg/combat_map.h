@@ -8,6 +8,14 @@
 #include <defs.h>
 #include <list.h>
 #include "../util/rex.h"
+#include "../renderer/terminal.h"
+
+#define MAP_COL_BACK            0x061016FF
+#define MAP_COL_FLOOR           0x4D4D4DFF
+#define MAP_COL_WALL            0x4D3D26FF
+#define MAP_COL_DOOR            0x4D3D26FF
+#define MAP_COL_FRIENDLY        0xD9A300FF
+#define MAP_COL_HOSTILE         0xD90000FF
 
 typedef struct Position Position;
 typedef struct CombatMap CombatMap;
@@ -50,6 +58,7 @@ struct CombatMap {
 void        CombatMap_CreateFromTemplate(CombatMap* map, RexImage *template);
 void        CombatMap_Destroy(CombatMap* map);
 CMTile*     CombatMap_GetTileAt(CombatMap* map, u32 x, u32 y);
+void        CombatMap_Render(CombatMap* map, Terminal* term);
 void        CombatMap_ReserveFriendlyStartPos(CombatMap* map, Position* pos);
 void        CombatMap_ReserveHostileStartPos(CombatMap *map, Position *pos);
 bool        CombatMap_IsOccupied(CombatMap* map, u32 x, u32 y);

@@ -11,7 +11,6 @@
 #include "rpg_log.h"
 #include "AStar.h"
 
-
 void CombatMap_CreateFromTemplate(CombatMap *map, RexImage *template)
 {
     memset(map, 0, sizeof(CombatMap));
@@ -68,7 +67,8 @@ void CombatMap_Destroy(CombatMap *map)
 INTERNAL inline
 u32 PosToIdx(CombatMap* map, u32 x, u32 y)
 {
-    return (y * map->width) + x;
+    //return (y * map->width) + x;
+    return (x * map->height) + y;
 }
 
 CMTile *CombatMap_GetTileAt(CombatMap *map, u32 x, u32 y)
@@ -77,6 +77,35 @@ CMTile *CombatMap_GetTileAt(CombatMap *map, u32 x, u32 y)
     CMTile *tile = &map->tiles[idx];
     assert(tile != NULL);
     return tile;
+}
+
+void CombatMap_Render(CombatMap* map, Terminal* term)
+{
+    for(i32 x = 0; x < map->width; ++x) {
+        for(i32 y = 0; y < map->height; ++y) {
+            CMTile* tile = CombatMap_GetTileAt(map, x, y);
+            switch(tile->type) {
+                case CM_TT_FRIENDLY_START:
+                case CM_TT_HOSTILE_START:
+                case CM_TT_FLOOR: {
+                    Term_SetXY(term, '.', x, y, MAP_COL_BACK, MAP_COL_FLOOR);
+                    break;
+                }
+                case CM_TT_WALL: {
+                    Term_SetXY(term, '#', x, y, MAP_COL_BACK, MAP_COL_WALL);
+                    break;
+                }
+                case CM_TT_DOOR: {
+                    Term_SetXY(term, '+', x, y, MAP_COL_BACK, MAP_COL_DOOR);
+                    break;
+                }
+                default: {
+                    Term_SetXY(term, 0, x, y, MAP_COL_BACK, TERM_COL_WHITE);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 INTERNAL
@@ -129,7 +158,6 @@ bool CombatMap_IsWalkable(CombatMap* map, u32 x, u32 y)
     return false;
 }
 
-// take the sqrt of me to get the actual distance ;) however that is much slower :D
 inline INTERNAL i32 GetDistance(const Position* c1, const Position* c2)
 {
     return abs((i32) sqrt((c2->x-c1->x)*(c2->x-c1->x) +

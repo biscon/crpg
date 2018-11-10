@@ -55,6 +55,24 @@ void    Term_Render(Terminal* term, float x, float y, RenderCmdBuffer *buffer);
 void    Term_Clear(Terminal* term);
 void    Term_Print(Terminal* term, i32 x, i32 y, const char* str);
 void    Term_SetBGColor(Terminal* term, u32 col);
+void    Term_SetFGColor(Terminal* term, u32 col);
 void    Term_PrintRexImage(Terminal* term, RexImage* image, i32 x, i32 y);
+
+static inline
+void    Term_SetXY(Terminal* term, u8 ch, i32 x, i32 y, u32 bgcol, u32 fgcol) {
+    CharCell* cc = (CharCell*) term->buffer;
+    i32 index = y * term->width + x;
+    cc[index].cp = ch;
+    cc[index].bgColor = bgcol;
+    cc[index].fgColor = fgcol;
+}
+
+static inline
+void    Term_SetXYNoBG(Terminal* term, u8 ch, i32 x, i32 y, u32 fgcol) {
+    CharCell* cc = (CharCell*) term->buffer;
+    i32 index = y * term->width + x;
+    cc[index].cp = ch;
+    cc[index].fgColor = fgcol;
+}
 
 #endif //GAME_TERMINAL_H

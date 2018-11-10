@@ -66,15 +66,7 @@ void Term_Clear(Terminal *term) {
     term->curBgColor = TERM_COL_BLACK;
 }
 
-inline
-INTERNAL
-void SetXY(Terminal* term, u8 ch, i32 x, i32 y, u32 bgcol, u32 fgcol) {
-    CharCell* cc = (CharCell*) term->buffer;
-    i32 index = y * term->width + x;
-    cc[index].cp = ch;
-    cc[index].bgColor = bgcol;
-    cc[index].fgColor = fgcol;
-}
+
 
 void Term_Print(Terminal *term, i32 x, i32 y, const char *str)
 {
@@ -118,6 +110,16 @@ INTERNAL void RGBAToColor(u8 r, u8 g, u8 b, u8 a, u32* col) {
     color |= a;
     *col = color;
 }
+
+/*
+void Term_SetXY(Terminal* term, u8 ch, i32 x, i32 y, u32 bgcol, u32 fgcol) {
+    CharCell* cc = (CharCell*) term->buffer;
+    i32 index = y * term->width + x;
+    cc[index].cp = ch;
+    cc[index].bgColor = bgcol;
+    cc[index].fgColor = fgcol;
+}
+*/
 
 void Term_Render(Terminal *term, float x, float y, RenderCmdBuffer *buffer)
 {
@@ -172,6 +174,12 @@ void Term_SetBGColor(Terminal *term, u32 col)
     term->curBgColor = col;
 }
 
+void Term_SetFGColor(Terminal *term, u32 col)
+{
+    term->curFgColor = col;
+}
+
+
 void Term_PrintRexImage(Terminal* term, RexImage *image, i32 x, i32 y)
 {
     for(i32 l = 0; l < image->noLayers; ++l) {
@@ -189,7 +197,7 @@ void Term_PrintRexImage(Terminal* term, RexImage *image, i32 x, i32 y)
                 RGBAToColor(tile->back_red, tile->back_green, tile->back_blue, 255, &bgcol);
                 RGBAToColor(tile->fore_red, tile->fore_green, tile->fore_blue, 255, &fgcol);
                 //SDL_Log("cx, cy = %d,%d", cx,cy);
-                SetXY(term, ch, x + cx, y + cy, bgcol, fgcol);
+                Term_SetXY(term, ch, x + cx, y + cy, bgcol, fgcol);
             }
         }
     }
