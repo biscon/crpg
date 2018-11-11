@@ -13,7 +13,7 @@
 #include <SDL.h>
 #include <glad.h>
 
-global_variable u32 ScreenWidth = 1440;
+global_variable u32 ScreenWidth = 1920;
 global_variable u32 ScreenHeight = 1080;
 global_variable SDL_Window* Window = NULL;
 global_variable SDL_GLContext Context = NULL;
@@ -315,7 +315,7 @@ int main()
     Term_Create(&term, 80, 60, 18, 18, 0, &fontAtlas);
 
     Terminal logTerm;
-    Term_Create(&logTerm, 80, 10, 9, 14, 0, &logFontAtlas);
+    Term_Create(&logTerm, 53, 20, 9, 14, 0, &logFontAtlas);
 
     //Term_Print(&term, 0, 0, "Hello World");
 
@@ -367,7 +367,7 @@ int main()
         Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
 
         CombatLog_Render(&encounter->combatLog, &logTerm);
-        Term_Render(&logTerm, 100.0f, 100.0f, &renderBuffer);
+        Term_Render(&logTerm, 1440.0f, 800.0f, &renderBuffer);
 
         //Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
 

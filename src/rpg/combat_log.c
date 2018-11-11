@@ -12,13 +12,14 @@
 void CombatLog_Create(CombatLog *log) {
     memset(log, 0, sizeof(CombatLog));
     STORE_INIT(log->messageStore, sizeof(CombatMessage));
-
+    /*
     CombatLog_Print(log,"Line 1");
     CombatLog_Print(log,"Det havde du ellers ikke sidst vi snakkede sammen. Men det er måske længe siden du har fået noget på den dumme?");
     CombatLog_Print(log,"Line 5");
     CombatLog_Print(log,"Line 6");
     CombatLog_Print(log,"Line 7");
     CombatLog_Print(log,"Line 8");
+    */
 }
 
 void CombatLog_Destroy(CombatLog *log) {
@@ -28,13 +29,14 @@ void CombatLog_Destroy(CombatLog *log) {
 void CombatLog_Print(CombatLog *log, const char *fmt, ...)
 {
     CombatMessage msg;
+    memset(msg.buffer, 0, sizeof(msg.buffer));
     va_list args;
     va_start(args, fmt);
     vsnprintf((char *) msg.buffer, sizeof(msg.buffer), fmt, args);
-    perror((char *) msg.buffer);
+    //perror((char *) msg.buffer);
     va_end(args);
     STORE_PUSHBACK(log->messageStore, &msg);
-    if(log->messageStore.noItems > 10) {
+    if(log->messageStore.noItems > 30) {
         STORE_REMOVE_AT(log->messageStore, 0);
     }
 }
@@ -117,7 +119,6 @@ void CombatLog_Render(CombatLog* log, Terminal* term)
             if (len % width > 0)
                 lines += 1;
             y -= lines;
-
 
             if(y < -10)
                 return;
