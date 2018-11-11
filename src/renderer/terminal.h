@@ -75,4 +75,7 @@ void    Term_SetXYNoBG(Terminal* term, u8 ch, i32 x, i32 y, u32 fgcol) {
     cc[index].fgColor = fgcol;
 }
 
+void    Term_DrawLine(Terminal* term, int x0, int y0, int x1, int y1, u32 col, u8 ch);
+void    Term_DrawBGRect(Terminal* term, i32 x0, i32 y0, i32 x1, i32 y1, u32 col);
+
 #endif //GAME_TERMINAL_H

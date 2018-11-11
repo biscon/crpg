@@ -203,3 +203,31 @@ void Term_PrintRexImage(Terminal* term, RexImage *image, i32 x, i32 y)
     }
 
 }
+
+/*
+ * Good old bresenham
+ */
+void Term_DrawLine(Terminal* term, i32 x0, i32 y0, i32 x1, i32 y1, u32 col, u8 ch) {
+    i32 dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+    i32 dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
+    i32 err = (dx>dy ? dx : -dy)/2, e2;
+
+    for(;;){
+        Term_SetXYNoBG(term, ch, x0, y0, col);
+        if (x0==x1 && y0==y1) break;
+        e2 = err;
+        if (e2 >-dx) { err -= dy; x0 += sx; }
+        if (e2 < dy) { err += dx; y0 += sy; }
+    }
+}
+
+void Term_DrawBGRect(Terminal* term, i32 x0, i32 y0, i32 x1, i32 y1, u32 col)
+{
+    for(i32 x = x0; x <= x1; ++x) {
+        for(i32 y = y0; y <= y1; ++y) {
+            CharCell* cc = (CharCell*) term->buffer;
+            i32 index = y * term->width + x;
+            cc[index].bgColor = col;
+        }
+    }
+}

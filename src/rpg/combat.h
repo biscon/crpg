@@ -7,6 +7,7 @@
 
 #include "entity.h"
 #include "combat_map.h"
+#include "combat_log.h"
 #include <vector.h>
 #include <list.h>
 
@@ -74,9 +75,8 @@ typedef struct {
     i32                 eventStackTop;
     CombatInterface*    combatInterface;
     i32                 curCombatantId;
-    //Combatant*          grid[RPG_GRID_W][RPG_GRID_H];
-    //Position            nodeGrid[RPG_GRID_W][RPG_GRID_H];
     CombatMap           combatMap;
+    CombatLog           combatLog;
 } Encounter;
 
 struct CombatEvent {

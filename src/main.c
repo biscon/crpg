@@ -304,8 +304,18 @@ int main()
     TextureAtlas_CreateFromSheet(&fontAtlas, 18, 18, &pb);
     PixelBuffer_Destroy(&pb);
 
+
+    PixelBuffer_CreateFromPNG(&pb, "assets/font9x14.png");
+    TextureAtlas logFontAtlas;
+    TextureAtlas_CreateFromSheet(&logFontAtlas, 9, 14, &pb);
+    PixelBuffer_Destroy(&pb);
+
+
     Terminal term;
     Term_Create(&term, 80, 60, 18, 18, 0, &fontAtlas);
+
+    Terminal logTerm;
+    Term_Create(&logTerm, 80, 10, 9, 14, 0, &logFontAtlas);
 
     //Term_Print(&term, 0, 0, "Hello World");
 
@@ -351,9 +361,13 @@ int main()
         //Term_SetBGColor(&term, TERM_COL_RED);
         Encounter_Render(encounter, &term);
         //Term_PrintRexImage(&term, &rexImage, 0, 0);
-        Term_Print(&term, 0, 0, buf);
 
+
+        Term_Print(&term, 0, 0, buf);
         Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
+
+        CombatLog_Render(&encounter->combatLog, &logTerm);
+        Term_Render(&logTerm, 100.0f, 100.0f, &renderBuffer);
 
         //Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
 
@@ -381,6 +395,9 @@ int main()
     Rex_Destroy(&rexImage);
     TextureAtlas_Destroy(&fontAtlas);
     Term_Destroy(&term);
+
+    TextureAtlas_Destroy(&logFontAtlas);
+    Term_Destroy(&logTerm);
 
     Font_Destroy(&font);
 

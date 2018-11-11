@@ -110,7 +110,7 @@ INTERNAL u32 Action_EndRound(Encounter* enc, CombatEvent* event) {
 
     CombatEvent next_event = {.action = Action_BeginRound};
     PushCombatEvent(enc, &next_event);
-    return 1000;
+    return 500;
 }
 
 INTERNAL u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
@@ -119,6 +119,7 @@ INTERNAL u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
     RPG_LOG("Ending turn for %s\n", c->entity->name);
+    COMBAT_LOG(enc->combatLog, "Ending turn for %s", c->entity->name);
 
     if(enc->combatInterface->onEndTurn)
         enc->combatInterface->onEndTurn(enc);
@@ -139,7 +140,7 @@ INTERNAL u32 Action_EndTurn(Encounter *enc, CombatEvent* event)
         CombatEvent next_event = {.action = Action_EndRound};
         PushCombatEvent(enc, &next_event);
     }
-    return 1000;
+    return 500;
 }
 
 INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
@@ -147,6 +148,7 @@ INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
     Combatant *c = VECTOR_GET(enc->combatants, Combatant*, enc->curCombatantId);
     assert(c != NULL);
     RPG_LOG("Beginning turn for %s\n", c->entity->name);
+    COMBAT_LOG(enc->combatLog, "Beginning turn for %s", c->entity->name);
     if (enc->combatInterface->onBeginTurn)
         enc->combatInterface->onBeginTurn(enc);
 
@@ -180,7 +182,7 @@ INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
         }
          */
     //}
-    return 1000;
+    return 500;
 }
 
 INTERNAL u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
@@ -212,7 +214,7 @@ INTERNAL u32 Action_BeginRound(Encounter* enc, CombatEvent* event)
     CombatEvent next_event = {.action = Action_BeginTurn};
     PushCombatEvent(enc, &next_event);
 
-    return 1000;
+    return 500;
 }
 
 INTERNAL u32 Action_Attack(Encounter *enc, CombatEvent* event)
@@ -224,13 +226,14 @@ INTERNAL u32 Action_Attack(Encounter *enc, CombatEvent* event)
     Attack* attack = event->attack;
     assert(attack != NULL);
     RPG_LOG("Combatant %s is attacking %s with %s\n", c->entity->name, target->entity->name, attack->name);
+    COMBAT_LOG(enc->combatLog, "%s is attacking %s with %s", c->entity->name, target->entity->name, attack->name);
 
     // decide next action
     AIInterface *ai = c->aiInterface;
     assert(ai != NULL);
     ai->onDecideAction(enc, c);
 
-    return 1000;
+    return 500;
 }
 
 INTERNAL u32 Action_Move(Encounter *enc, CombatEvent* event)
@@ -270,7 +273,7 @@ INTERNAL u32 Action_Move(Encounter *enc, CombatEvent* event)
         assert(ai != NULL);
         ai->onDecideAction(enc, c);
     }
-    return 500;
+    return 250;
 }
 
 /*
@@ -349,6 +352,7 @@ INTERNAL void DefaultAI_OnDecideAction(Encounter *enc, Combatant *combatant)
                 Path* path = CombatMap_CreatePath(&enc->combatMap, &combatant->position, &pos);
                 if(path) {
                     RPG_LOG("Path created to %d,%d, moving...\n", pos.x, pos.y);
+                    COMBAT_LOG(enc->combatLog, "Moving %s towards %d,%d", combatant->entity->name, pos.x, pos.y);
                     path->movesLeft = combatant->movesPerTurn;
                     combatant->curPath = path;
                     CombatEvent event = {.action = Action_Move};
@@ -399,6 +403,7 @@ Encounter *Encounter_Create(CombatInterface* combatInterface, RexImage* maptempl
     enc->eventStackTop = -1;
     enc->combatInterface = combatInterface;
     CombatMap_CreateFromTemplate(&enc->combatMap, maptemplate);
+    CombatLog_Create(&enc->combatLog);
     return enc;
 }
 
@@ -412,12 +417,15 @@ void Encounter_Destroy(Encounter *enc)
             LIST_DESTROY(c->attackList);
         if(c->usedAttackList)
             LIST_DESTROY(c->usedAttackList);
+        if(c->curPath)
+            CombatMap_DestroyPath(c->curPath);
         free(VectorGet(&enc->combatants, i));
     }
     VECTOR_FREE(enc->combatants);
     if(enc->eventStack)
         free(enc->eventStack);
     CombatMap_Destroy(&enc->combatMap);
+    CombatLog_Destroy(&enc->combatLog);
     free(enc);
 }
 

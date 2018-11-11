@@ -50,6 +50,7 @@ set(UTIL_SOURCE_FILES
         src/util/list.c
         src/util/vector.c
         src/include/vector.h
+        src/util/hashtable.c
         src/util/string_util.c
         src/util/string_util.h
         src/util/cJSON/cJSON.h
@@ -58,7 +59,11 @@ set(UTIL_SOURCE_FILES
         src/include/list.h
         src/include/stb_rect_pack.h
         src/util/lodepng.h
-        src/util/lodepng.c src/util/math_util.c src/util/math_util.h src/util/rex.c src/util/rex.h)
+        src/util/lodepng.c
+        src/util/math_util.c
+        src/util/math_util.h
+        src/util/rex.c
+        src/util/rex.h)
 
 set(GAME_SOURCE_FILES
         src/include/defs.h
@@ -84,6 +89,8 @@ set(GAME_SOURCE_FILES
         src/rpg/rpg_defs.h
         src/rpg/rpg_log.c
         src/rpg/rpg_log.h
+        src/rpg/combat_log.c
+        src/rpg/combat_log.h
         src/rpg/grammar.c
         src/rpg/grammar.h
         src/rpg/faction.c
@@ -92,14 +99,20 @@ set(GAME_SOURCE_FILES
         src/rpg/attack.h
         src/rpg/combat.c
         src/rpg/combat.h
-        src/util/list.c
-        src/include/list.h
         src/renderer/renderer.c
         src/renderer/renderer.h
         src/renderer/opengl_renderer.c
         src/renderer/opengl_renderer.h
         src/renderer/pixel_buffer.c
-        src/renderer/pixel_buffer.h src/renderer/font.c src/renderer/font.h src/renderer/texture_atlas.c src/renderer/texture_atlas.h src/util/hashtable.c src/renderer/terminal.c src/renderer/terminal.h src/rpg/combat_map.c src/rpg/combat_map.h)
+        src/renderer/pixel_buffer.h
+        src/renderer/font.c
+        src/renderer/font.h
+        src/renderer/texture_atlas.c
+        src/renderer/texture_atlas.h
+        src/renderer/terminal.c
+        src/renderer/terminal.h
+        src/rpg/combat_map.c
+        src/rpg/combat_map.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 
