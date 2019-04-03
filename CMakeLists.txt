@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(game)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG -Wall")
+set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG -Wall -fsanitize=undefined -fsanitize=address -fsanitize=leak -fsanitize=integer-divide-by-zero -fsanitize=null -fsanitize=signed-integer-overflow -fsanitize=bounds -fstack-protector")
 #set(CMAKE_CXX_FLAGS_DEBUG "-O3 -funroll-loops -fomit-frame-pointer -ftree-loop-distribution -ftree-vectorize")
 # uncomment this to compile as gui app (doesnt open the console)
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
@@ -112,7 +112,10 @@ set(GAME_SOURCE_FILES
         src/renderer/terminal.c
         src/renderer/terminal.h
         src/rpg/combat_map.c
-        src/rpg/combat_map.h)
+        src/rpg/combat_map.h
+        src/input/input.c
+        src/input/input.h
+        src/input/mapped_input.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 

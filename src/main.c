@@ -8,6 +8,7 @@
 #include "renderer/opengl_renderer.h"
 #include "renderer/terminal.h"
 #include "util/rex.h"
+#include "input/input.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -111,6 +112,27 @@ INTERNAL void UpdateInput() {
             HandleWindowEvent(&e);
         }
     }
+}
+
+INTERNAL void SetupInput() {
+    InputMapping mapping;
+    mapping.type = IMT_ACTION;
+    mapping.mappedId = INPUT_ACTION_SELECT;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_RETURN;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_ACTION;
+    mapping.mappedId = INPUT_ACTION_UP;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_UP;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_ACTION;
+    mapping.mappedId = INPUT_ACTION_DOWN;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_DOWN;
+    Input_CreateMapping(&mapping);
 }
 
 INTERNAL bool InitVideo()
@@ -223,6 +245,10 @@ int main()
 
     //i32 roll = RollDice("2D6+1");
     //SDL_Log("Roll result = %d", roll);
+
+    Input_Init();
+    SetupInput();
+
     RPG_Init();
 
     // game init
@@ -404,6 +430,8 @@ int main()
 
     TextureAtlas_Destroy(&atlas);
     Render_DestroyCmdBuffer(&renderBuffer);
+
+    Input_Shutdown();
 
     ShutdownVideo();
     SDL_Quit();
