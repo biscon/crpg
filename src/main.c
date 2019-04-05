@@ -38,12 +38,12 @@ INTERNAL void HandleKeyboardEvent(const SDL_Event *event)
     switch( event->type ) {
         case SDL_KEYDOWN: {
             if(event->key.repeat == 0) {
-                // call listeners
-                //kb.keysym = event->key.keysym;
+                Input_PushKeyDown(event->key.keysym.sym);
             }
             break;
         }
         case SDL_KEYUP: {
+            Input_PushKeyUp(event->key.keysym.sym);
             break;
         }
     }
@@ -132,6 +132,30 @@ INTERNAL void SetupInput() {
     mapping.mappedId = INPUT_ACTION_DOWN;
     mapping.event.type = RIET_KEYBOARD;
     mapping.event.keycode = SDLK_DOWN;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_STATE;
+    mapping.mappedId = INPUT_STATE_FORWARD;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_w;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_STATE;
+    mapping.mappedId = INPUT_STATE_BACK;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_s;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_STATE;
+    mapping.mappedId = INPUT_STATE_LEFT;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_a;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_STATE;
+    mapping.mappedId = INPUT_STATE_RIGHT;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_d;
     Input_CreateMapping(&mapping);
 }
 

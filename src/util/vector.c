@@ -74,3 +74,16 @@ void VectorFree(Vector *v)
 {
     free(v->items);
 }
+
+void VectorRemoveItem(Vector *v, void *item) {
+    i32 index = -1;
+    for(i32 i = 0; i < v->total; i++) {
+        if(VectorGet(v, i) == item) {
+            index = i;
+            break;
+        }
+    }
+    if(index > -1) {
+        VectorRemove(v, index);
+    }
+}
