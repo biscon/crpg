@@ -7,7 +7,6 @@
 
 void FPS_UI_Init();
 void FPS_UI_Shutdown();
-
-
+void FPS_UI_Update();
 
 #endif //GAME_FPS_CONTROLLER_H
