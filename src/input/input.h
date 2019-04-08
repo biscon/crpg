@@ -58,14 +58,15 @@ struct InputMapping {
 
 void Input_Init();
 void Input_Shutdown();
+// TODO make config module call this (load bindings from a file)
 void Input_CreateMapping(InputMapping *mapping);
 
 
 // used by the application layer to poll for mapped input associated with a context
 void Input_CreateContext(InputContext* context);
 void Input_DestroyContext(InputContext* context);
-void Input_RegisterInputAction(InputContext* context, MappedInputId id);
-void Input_RegisterInputState(InputContext *context, MappedInputId id);
+void Input_RegisterAction(InputContext *context, MappedInputId id);
+void Input_RegisterState(InputContext *context, MappedInputId id);
 
 void Input_PollAction(InputContext* context, InputAction* action);
 bool Input_QueryState(InputContext* context, u32 id);

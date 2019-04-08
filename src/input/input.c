@@ -46,12 +46,12 @@ void Input_DestroyContext(InputContext *context)
     VECTOR_REMOVE_ITEM(inputContexts, context);
 }
 
-void Input_RegisterInputAction(InputContext *context, MappedInputId id)
+void Input_RegisterAction(InputContext *context, MappedInputId id)
 {
     STORE_PUSHBACK(context->actionIds, &id);
 }
 
-void Input_RegisterInputState(InputContext *context, MappedInputId id)
+void Input_RegisterState(InputContext *context, MappedInputId id)
 {
     STORE_PUSHBACK(context->stateIds, &id);
 }

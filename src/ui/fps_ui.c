@@ -12,11 +12,11 @@ INTERNAL InputContext inputContext;
 void FPS_UI_Init()
 {
     Input_CreateContext(&inputContext);
-    Input_RegisterInputAction(&inputContext, INPUT_ACTION_UP);
-    Input_RegisterInputAction(&inputContext, INPUT_ACTION_DOWN);
+    Input_RegisterAction(&inputContext, INPUT_ACTION_UP);
+    Input_RegisterAction(&inputContext, INPUT_ACTION_DOWN);
 
-    Input_RegisterInputState(&inputContext, INPUT_STATE_FORWARD);
-    Input_RegisterInputState(&inputContext, INPUT_STATE_BACK);
+    Input_RegisterState(&inputContext, INPUT_STATE_FORWARD);
+    Input_RegisterState(&inputContext, INPUT_STATE_BACK);
 
 }
 
