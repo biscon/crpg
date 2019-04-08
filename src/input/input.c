@@ -31,6 +31,7 @@ void Input_CreateMapping(InputMapping* mapping)
 void Input_CreateContext(InputContext *context)
 {
     STORE_INIT(context->actionIds, sizeof(MappedInputId));
+    STORE_INIT(context->stateIds, sizeof(MappedInputId));
     STORE_INIT(context->actions, sizeof(InputAction));
     STORE_INIT(context->states, sizeof(InputState));
     VECTOR_ADD(inputContexts, context);
@@ -39,6 +40,7 @@ void Input_CreateContext(InputContext *context)
 void Input_DestroyContext(InputContext *context)
 {
     STORE_DESTROY(context->actionIds);
+    STORE_DESTROY(context->stateIds);
     STORE_DESTROY(context->actions);
     STORE_DESTROY((context->states));
     VECTOR_REMOVE_ITEM(inputContexts, context);
@@ -54,21 +56,6 @@ void Input_RegisterInputState(InputContext *context, MappedInputId id)
     STORE_PUSHBACK(context->stateIds, &id);
 }
 
-/*
- * Dispatches actions and states to a context based on the mapping
- */
-INTERNAL void dispatchContext(InputContext* context, InputMapping* mapping) {
-    if(mapping->type == IMT_ACTION) {
-
-    }
-    // first check if its already there and update active, if not add and set active true
-    if(mapping->type == IMT_STATE) {
-        InputState state;
-        state.id = mapping->mappedId;
-        state.active = true;
-        STORE_PUSHBACK(context->states, &state);
-    }
-}
 
 INTERNAL InputState* findOrCreateState(InputContext* context, InputMapping* mapping)
 {
@@ -127,7 +114,7 @@ void Input_PushKeyUp(SDL_Keycode keycode)
         if(mapping->event.type == RIET_KEYBOARD &&
            mapping->event.keycode == keycode &&
            mapping->type == IMT_STATE) {
-            SDL_Log("Dispatching state mapping false");
+            //SDL_Log("Dispatching state mapping false");
             dispatchStateMapping(mapping, false);
         }
     }
@@ -141,14 +128,31 @@ void Input_PushKeyDown(SDL_Keycode keycode)
         if(mapping->event.type == RIET_KEYBOARD &&
            mapping->event.keycode == keycode &&
            mapping->type == IMT_ACTION) {
-            SDL_Log("Dispatching action mapping");
+            //SDL_Log("Dispatching action mapping");
             dispatchActionMapping(mapping);
         }
         if(mapping->event.type == RIET_KEYBOARD &&
            mapping->event.keycode == keycode &&
            mapping->type == IMT_STATE) {
-            SDL_Log("Dispatching state mapping true");
+            //SDL_Log("Dispatching state mapping true");
             dispatchStateMapping(mapping, true);
         }
     }
+}
+
+void Input_PollAction(InputContext *context, InputAction *action)
+{
+    InputAction* src = STORE_GET_AT(context->actions, context->actions.noItems-1);
+    memcpy(action, src, sizeof(InputAction));
+    STORE_REMOVE_AT(context->actions, context->actions.noItems-1);
+}
+
+bool Input_QueryState(InputContext *context, u32 id) {
+    for(i32 i = 0; i < context->states.noItems; ++i) {
+        InputState *state = STORE_GET_AT(context->states, i);
+        if(state->id == id) {
+            return state->active;
+        }
+    }
+    return false;
 }

@@ -8,6 +8,7 @@
 #include <defs.h>
 #include <SDL_keycode.h>
 #include "mapped_input.h"
+#include <store.h>
 
 typedef struct InputContext         InputContext;
 typedef struct InputAction          InputAction;
@@ -64,6 +65,7 @@ void Input_CreateMapping(InputMapping *mapping);
 void Input_CreateContext(InputContext* context);
 void Input_DestroyContext(InputContext* context);
 void Input_RegisterInputAction(InputContext* context, MappedInputId id);
+void Input_RegisterInputState(InputContext *context, MappedInputId id);
 
 void Input_PollAction(InputContext* context, InputAction* action);
 bool Input_QueryState(InputContext* context, u32 id);

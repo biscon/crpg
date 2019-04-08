@@ -9,6 +9,7 @@
 #include "renderer/terminal.h"
 #include "util/rex.h"
 #include "input/input.h"
+#include "ui/fps_ui.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -369,6 +370,8 @@ int main()
 
     //Term_Print(&term, 0, 0, "Hello World");
 
+    FPS_UI_Init();
+
     while(!ShouldQuit)
     {
         oldTime = GetTime();
@@ -419,6 +422,8 @@ int main()
         CombatLog_Render(&encounter->combatLog, &logTerm);
         Term_Render(&logTerm, 1440.0f, 800.0f, &renderBuffer);
 
+        FPS_UI_Update();
+
         //Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
 
         //Render_PushTexturedQuadsCmd(&renderBuffer, fontAtlas.textureId, &texquad1, 1);
@@ -433,6 +438,8 @@ int main()
 
         SDL_GL_SwapWindow(Window);
     }
+
+    FPS_UI_Shutdown();
 
     Encounter_Destroy(encounter);
 
