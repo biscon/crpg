@@ -68,7 +68,7 @@ void Input_DestroyContext(InputContext* context);
 void Input_RegisterAction(InputContext *context, MappedInputId id);
 void Input_RegisterState(InputContext *context, MappedInputId id);
 
-void Input_PollAction(InputContext* context, InputAction* action);
+bool Input_PollAction(InputContext* context, InputAction* action);
 bool Input_QueryState(InputContext* context, u32 id);
 
 // Call these functions to feed the input layer with raw input

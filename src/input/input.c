@@ -140,11 +140,14 @@ void Input_PushKeyDown(SDL_Keycode keycode)
     }
 }
 
-void Input_PollAction(InputContext *context, InputAction *action)
+bool Input_PollAction(InputContext *context, InputAction *action)
 {
+    if(context->actions.noItems < 1)
+        return false;
     InputAction* src = STORE_GET_AT(context->actions, context->actions.noItems-1);
     memcpy(action, src, sizeof(InputAction));
     STORE_REMOVE_AT(context->actions, context->actions.noItems-1);
+    return true;
 }
 
 bool Input_QueryState(InputContext *context, u32 id) {

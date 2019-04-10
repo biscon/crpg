@@ -12,7 +12,7 @@ INTERNAL InputContext inputContext;
 void FPS_UI_Init()
 {
     Input_CreateContext(&inputContext);
-    Input_RegisterAction(&inputContext, INPUT_ACTION_UP);
+    Input_RegisterAction(&inputContext, INPUT_ACTION_TOGGLE_FPS);
     Input_RegisterAction(&inputContext, INPUT_ACTION_DOWN);
 
     Input_RegisterState(&inputContext, INPUT_STATE_FORWARD);
@@ -27,10 +27,13 @@ void FPS_UI_Shutdown()
 
 void FPS_UI_Update() {
     InputAction action;
-    if(inputContext.actions.noItems > 0) {
-        Input_PollAction(&inputContext, &action);
-        SDL_Log("Got action ID = %d", action.id);
+
+    while(Input_PollAction(&inputContext, &action)) {
+        if(action.id == INPUT_ACTION_TOGGLE_FPS) {
+            SDL_Log("Toggling FPS Display");
+        }
     }
+
     if(Input_QueryState(&inputContext, INPUT_STATE_FORWARD)) {
         SDL_Log("Forwaaaaaaaaaaaaaaard");
     }

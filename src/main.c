@@ -124,6 +124,12 @@ INTERNAL void SetupInput() {
     Input_CreateMapping(&mapping);
 
     mapping.type = IMT_ACTION;
+    mapping.mappedId = INPUT_ACTION_TOGGLE_FPS;
+    mapping.event.type = RIET_KEYBOARD;
+    mapping.event.keycode = SDLK_F1;
+    Input_CreateMapping(&mapping);
+
+    mapping.type = IMT_ACTION;
     mapping.mappedId = INPUT_ACTION_UP;
     mapping.event.type = RIET_KEYBOARD;
     mapping.event.keycode = SDLK_UP;
