@@ -350,8 +350,8 @@ int main()
             .left = 0, .top = 0, .right = 288, .bottom = 112};
 
     Font font;
-    //Font_Create(&font, "assets/PressStart2P.ttf", 22);
-    Font_Create(&font, "assets/Inconsolata.otf", 24);
+    Font_Create(&font, "assets/PressStart2P.ttf", 24);
+    //Font_Create(&font, "assets/Inconsolata.otf", 24);
     //Font_Create(&font, "assets/bigblue437.ttf", 18);
     //Font_Create(&font, "assets/OpenSans-Regular.ttf", 24);
 
@@ -376,7 +376,7 @@ int main()
 
     //Term_Print(&term, 0, 0, "Hello World");
 
-    FPS_UI_Init();
+    FPS_UI_Init(&font);
 
     while(!ShouldQuit)
     {
@@ -402,8 +402,7 @@ int main()
 
         Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
         //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
-        char buf[32];
-        sprintf(buf, "FPS %.2f", 1.0/secondsElapsedForFrame);
+
         // render debug info
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -422,19 +421,19 @@ int main()
         //Term_PrintRexImage(&term, &rexImage, 0, 0);
 
 
-        Term_Print(&term, 0, 0, buf);
+        //Term_Print(&term, 0, 0, buf);
         Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
 
         CombatLog_Render(&encounter->combatLog, &logTerm);
         Term_Render(&logTerm, 1440.0f, 800.0f, &renderBuffer);
 
-        FPS_UI_Update();
+        FPS_UI_Update(&renderBuffer, secondsElapsedForFrame);
 
         //Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
 
         //Render_PushTexturedQuadsCmd(&renderBuffer, fontAtlas.textureId, &texquad1, 1);
 
-        //Render_PushText(&renderBuffer, &font, 5, 320, COLOR_RED, "SYSTEM READY. Doctor Yeti, tag en slapper!###¤");
+        //Render_PushText(&renderBuffer, &font, 5, 25, COLOR_WHITE, "SYSTEM READY. Doctor Yeti, tag en slapper!###¤");
 
         //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
         //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);

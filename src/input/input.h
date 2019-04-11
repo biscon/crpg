@@ -19,7 +19,8 @@ typedef struct RawInputEvent        RawInputEvent;
 typedef enum {
     RIET_KEYBOARD,
     RIET_MOUSE,
-    RIET_CONTROLLER
+    RIET_CONTROLLER,
+    RIET_TOUCH,
 } RawInputEventType;
 
 struct RawInputEvent {

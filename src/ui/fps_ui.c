@@ -8,16 +8,15 @@
 #include "../input/input.h"
 
 INTERNAL InputContext inputContext;
+INTERNAL Font *font;
+INTERNAL bool showFps = false;
 
-void FPS_UI_Init()
+
+void FPS_UI_Init(Font* fpsfont)
 {
+    font = fpsfont;
     Input_CreateContext(&inputContext);
     Input_RegisterAction(&inputContext, INPUT_ACTION_TOGGLE_FPS);
-    Input_RegisterAction(&inputContext, INPUT_ACTION_DOWN);
-
-    Input_RegisterState(&inputContext, INPUT_STATE_FORWARD);
-    Input_RegisterState(&inputContext, INPUT_STATE_BACK);
-
 }
 
 void FPS_UI_Shutdown()
@@ -25,19 +24,19 @@ void FPS_UI_Shutdown()
     Input_DestroyContext(&inputContext);
 }
 
-void FPS_UI_Update() {
+void FPS_UI_Update(RenderCmdBuffer* renderBuffer, double frameDelta)
+{
     InputAction action;
 
     while(Input_PollAction(&inputContext, &action)) {
         if(action.id == INPUT_ACTION_TOGGLE_FPS) {
-            SDL_Log("Toggling FPS Display");
+            showFps = !showFps;
         }
     }
 
-    if(Input_QueryState(&inputContext, INPUT_STATE_FORWARD)) {
-        SDL_Log("Forwaaaaaaaaaaaaaaard");
-    }
-    if(Input_QueryState(&inputContext, INPUT_STATE_BACK)) {
-        SDL_Log("baaaaaack");
+    if(showFps) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "FPS %.2f", 1.0 / frameDelta);
+        Render_PushText(renderBuffer, font, 10, 35, COLOR_WHITE, buf);
     }
 }
