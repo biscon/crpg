@@ -9,10 +9,10 @@
 #include "renderer/terminal.h"
 #include "util/rex.h"
 #include "input/input.h"
-#include "ui/fps_ui.h"
-#include "ui/game_state.h"
-#include "ui/combat_state.h"
-#include "ui/intro_state.h"
+#include "game/game.h"
+#include "game/game_state.h"
+#include "game/combat_state.h"
+#include "game/intro_state.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -118,57 +118,6 @@ INTERNAL void UpdateInput() {
     }
 }
 
-INTERNAL void SetupInput() {
-    InputMapping mapping;
-    mapping.type = IMT_ACTION;
-    mapping.mappedId = INPUT_ACTION_SELECT;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_RETURN;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_ACTION;
-    mapping.mappedId = INPUT_ACTION_TOGGLE_FPS;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_F1;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_ACTION;
-    mapping.mappedId = INPUT_ACTION_UP;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_UP;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_ACTION;
-    mapping.mappedId = INPUT_ACTION_DOWN;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_DOWN;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_STATE;
-    mapping.mappedId = INPUT_STATE_FORWARD;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_w;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_STATE;
-    mapping.mappedId = INPUT_STATE_BACK;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_s;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_STATE;
-    mapping.mappedId = INPUT_STATE_LEFT;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_a;
-    Input_CreateMapping(&mapping);
-
-    mapping.type = IMT_STATE;
-    mapping.mappedId = INPUT_STATE_RIGHT;
-    mapping.event.type = RIET_KEYBOARD;
-    mapping.event.keycode = SDLK_d;
-    Input_CreateMapping(&mapping);
-}
-
 INTERNAL bool InitVideo()
 {
     // request a GL Context 3.3 core profile
@@ -255,42 +204,19 @@ int main()
         SDL_Quit();
         return -1;
     }
-
     SDL_Log("Monitor refresh rate is %d hz", displayMode.refresh_rate);
-
 
     i32 monitorRefreshHz = displayMode.refresh_rate;
     i32 gameUpdateHz = monitorRefreshHz;
     //i32 gameUpdateHz = 620;
     double targetSecondsPerFrame = 1.0 / (double) gameUpdateHz;
-
     PerformanceFrequency = SDL_GetPerformanceFrequency();
     InitTimeStamp = SDL_GetPerformanceCounter();
-
     double oldTime = 0;
 
-    //i32 roll = RollDice("2D6+1");
-    //SDL_Log("Roll result = %d", roll);
-
     Input_Init();
-    SetupInput();
-
-    Font font;
-    Font_Create(&font, "assets/PressStart2P.ttf", 24);
-    //Font_Create(&font, "assets/Inconsolata.otf", 24);
-    //Font_Create(&font, "assets/bigblue437.ttf", 18);
-    //Font_Create(&font, "assets/OpenSans-Regular.ttf", 24);
-    FPS_UI_Init(&font);
-
-
     RPG_Init();
-
-    GameState_Init();
-    CombatState_Register();
-    IntroState_Register();
-    GameState_CreateStates();
-    // Push Initial Game State
-    GameState_Push(GAME_STATE_INTRO);
+    Game_Init();
 
     while(!ShouldQuit)
     {
@@ -316,30 +242,15 @@ int main()
 
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
-
-
-        GameState_Frame(&renderBuffer, secondsElapsedForFrame);
-
-        FPS_UI_Update(&renderBuffer, secondsElapsedForFrame);
-
+        Game_Update(&renderBuffer, secondsElapsedForFrame);
 
         OGL_RenderCmdBuffer(&renderBuffer);
-
         SDL_GL_SwapWindow(Window);
     }
 
-    GameState_DestroyStates();
-    GameState_Shutdown();
-
-    FPS_UI_Shutdown();
-
-    Font_Destroy(&font);
-
-
+    Game_Shutdown();
     Render_DestroyCmdBuffer(&renderBuffer);
-
     Input_Shutdown();
-
     ShutdownVideo();
     SDL_Quit();
     return 0;
