@@ -38,6 +38,7 @@ void            GameState_DestroyStates();
 
 void            GameState_Push(GameStateId id);
 void            GameState_Pop();
+bool            GameState_IsStackEmpty();
 
 void            GameState_Create(GameStateId id);
 void            GameState_BindOnCreate(GameStateId id, OnCreate callback);

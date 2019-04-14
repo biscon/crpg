@@ -87,6 +87,11 @@ void GameState_Push(GameStateId id) {
 
     // stop already running state
     if(gameStateStack != NULL) {
+        // if gamestate is already running exit and do nothing
+        if(gs == gameStateStack->data) {
+            return;
+        }
+
         GameState* top = ((GameState*) gameStateStack->data);
         if(top->onStop != NULL) {
             top->onStop();
@@ -156,6 +161,13 @@ void GameState_DestroyStates() {
             states[i].onDestroy();
         }
     }
+}
+
+bool GameState_IsStackEmpty() {
+    if(gameStateStack != NULL) {
+        return false;
+    }
+    return true;
 }
 
 

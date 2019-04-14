@@ -9,6 +9,6 @@
 
 void Game_Init();
 void Game_Shutdown();
-void Game_Update(RenderCmdBuffer *renderBuffer, double frameDelta);
+bool Game_Update(RenderCmdBuffer *renderBuffer, double frameDelta);
 
 #endif

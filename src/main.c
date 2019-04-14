@@ -242,7 +242,7 @@ int main()
 
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
-        Game_Update(&renderBuffer, secondsElapsedForFrame);
+        ShouldQuit = Game_Update(&renderBuffer, secondsElapsedForFrame);
 
         OGL_RenderCmdBuffer(&renderBuffer);
         SDL_GL_SwapWindow(Window);

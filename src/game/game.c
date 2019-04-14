@@ -98,6 +98,8 @@ void Game_Init()
     //Font_Create(&font, "assets/OpenSans-Regular.ttf", 24);
     Input_CreateContext(&inputContext);
     Input_RegisterAction(&inputContext, INPUT_ACTION_TOGGLE_FPS);
+    Input_RegisterAction(&inputContext, INPUT_ACTION_ESCAPE);
+    Input_RegisterAction(&inputContext, INPUT_ACTION_UP);
 
     GameState_Init();
     CombatState_Register();
@@ -116,18 +118,23 @@ void Game_Shutdown()
     Font_Destroy(&font);
 }
 
-void Game_Update(RenderCmdBuffer *renderBuffer, double frameDelta)
+bool Game_Update(RenderCmdBuffer *renderBuffer, double frameDelta)
 {
     InputAction action;
 
     while(Input_PollAction(&inputContext, &action)) {
         if(action.id == INPUT_ACTION_TOGGLE_FPS) {
             showFps = !showFps;
-            if(showFps) {
-                GameState_Push(GAME_STATE_COMBAT);
-            } else {
-                GameState_Pop();
+        }
+        if(action.id == INPUT_ACTION_ESCAPE) {
+            GameState_Pop();
+            if(GameState_IsStackEmpty()) {
+                SDL_Log("QUIT!!!! FOR HELVEDE!!!");
+                return true;
             }
+        }
+        if(action.id == INPUT_ACTION_UP) {
+            GameState_Push(GAME_STATE_COMBAT);
         }
     }
 
@@ -138,4 +145,5 @@ void Game_Update(RenderCmdBuffer *renderBuffer, double frameDelta)
         snprintf(buf, sizeof(buf), "FPS %.2f", 1.0 / frameDelta);
         Render_PushText(renderBuffer, &font, 10, 35, COLOR_WHITE, buf);
     }
+    return false;
 }
