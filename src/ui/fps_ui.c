@@ -6,6 +6,7 @@
 #include <SDL_log.h>
 #include "fps_ui.h"
 #include "../input/input.h"
+#include "game_state.h"
 
 INTERNAL InputContext inputContext;
 INTERNAL Font *font;
@@ -31,6 +32,11 @@ void FPS_UI_Update(RenderCmdBuffer* renderBuffer, double frameDelta)
     while(Input_PollAction(&inputContext, &action)) {
         if(action.id == INPUT_ACTION_TOGGLE_FPS) {
             showFps = !showFps;
+            if(showFps) {
+                GameState_Push(GAME_STATE_COMBAT);
+            } else {
+                GameState_Pop();
+            }
         }
     }
 

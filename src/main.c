@@ -10,6 +10,9 @@
 #include "util/rex.h"
 #include "input/input.h"
 #include "ui/fps_ui.h"
+#include "ui/game_state.h"
+#include "ui/combat_state.h"
+#include "ui/intro_state.h"
 #include <memory.h>
 
 #include <SDL.h>
@@ -222,14 +225,6 @@ INTERNAL void ShutdownVideo()
 }
 
 /**
- * Test combat interface
- */
-INTERNAL void onBeginRound(Encounter* enc)
-{
-    RPG_LOG("\nStarting round %d ------------------------------------------\n", enc->round);
-}
-
-/**
  * Entry point
  * @return
  */
@@ -280,103 +275,22 @@ int main()
     Input_Init();
     SetupInput();
 
-    RPG_Init();
-
-    // game init
-    RPGContext rpgContext;
-    RPG_InitContext(&rpgContext);
-
-    Entity *entity;
-    EntityClass *entityClass = RPG_GetEntityClass(&rpgContext, "Fighter");
-    assert(entityClass != NULL);
-    entity = RPG_CreateCharacterEntity(&rpgContext, entityClass, "Schweibart", 1);
-    //Entity_IncreaseLevel(entity);
-    WeaponTemplate *maintpl = RPG_GetWeaponTemplate(&rpgContext, "Longsword");
-    assert(maintpl != NULL);
-    WeaponTemplate *offtpl = RPG_GetWeaponTemplate(&rpgContext, "Shortsword");
-    assert(offtpl != NULL);
-    ArmorTemplate *armortpl = RPG_GetArmorTemplate(&rpgContext, "Chain Mail");
-    assert(armortpl != NULL);
-    ArmorTemplate *shieldtpl = RPG_GetArmorTemplate(&rpgContext, "Shield");
-    assert(shieldtpl != NULL);
-
-    Entity_SetMainWeapon(entity, Weapon_CreateFromTemplate(maintpl));
-    Entity_SetOffWeapon(entity, Weapon_CreateFromTemplate(offtpl));
-    Entity_SetArmor(entity, Armor_CreateFromTemplate(armortpl));
-    Entity_SetShield(entity, Armor_CreateFromTemplate(shieldtpl));
-    RPG_LogEntity(entity);
-
-    Entity *monster = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Dire Wolf"), 2);
-    Entity *monster2 = RPG_CreateMonsterFromTemplate(&rpgContext, RPG_GetMonsterTemplate(&rpgContext, "Swearwolf"), 1);
-
-    RPG_LogEntity(monster);
-
-    CombatInterface interface;
-    memset(&interface, 0, sizeof(CombatInterface));
-    interface.onBeginRound = onBeginRound;
-
-    RexImage rexImage;
-    Rex_CreateFromFile(&rexImage, "assets/map.xp");
-
-    Encounter *encounter = Encounter_Create(&interface, &rexImage);
-    Encounter_AddEntity(encounter, entity, ENC_PLAYER_TEAM);
-    Encounter_AddEntity(encounter, monster, ENC_ENEMY_TEAM);
-    Encounter_AddEntity(encounter, monster2, ENC_ENEMY_TEAM);
-    Encounter_Start(encounter);
-
-    Quad quad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
-                        .left = 0, .top = 0, .right = 1920, .bottom = 1080};
-
-    Quad quad2 = {.color = {1.0f, 0.0f, 1.0f, 1.0f},
-            .left = 100, .top = 400, .right = 1000, .bottom = 700};
-
-    Quad quad3 = {.color = {0.0f, 1.0f, 0.0f, 1.0f},
-            .left = 400, .top = 500, .right = 700, .bottom = 600};
-
-
-    TextureAtlas atlas;
-    TextureAtlas_Create(&atlas, 4096, 4096, PBF_RGBA);
-    u32 tex1 = TextureAtlas_AddImageFromPNG(&atlas, "assets/sample.png");
-    u32 tex2 = TextureAtlas_AddImageFromPNG(&atlas, "assets/brick.png");
-    TextureAtlas_PackAndUpload(&atlas);
-
-    AtlasQuad atlasquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex1,
-            .left = 0, .top = 0, .right = 16, .bottom = 16};
-
-    AtlasQuad atlasquad2 = {.color = {1.0f, 1.0f, 1.0f, 1.0f}, .atlasId = tex1,
-            .left = 16, .top = 16, .right = 32, .bottom = 32};
-
-    Quad texquad1 = {.color = {1.0f, 1.0f, 1.0f, 1.0f},
-            .left = 0, .top = 0, .right = 288, .bottom = 112};
-
     Font font;
     Font_Create(&font, "assets/PressStart2P.ttf", 24);
     //Font_Create(&font, "assets/Inconsolata.otf", 24);
     //Font_Create(&font, "assets/bigblue437.ttf", 18);
     //Font_Create(&font, "assets/OpenSans-Regular.ttf", 24);
-
-    PixelBuffer pb;
-    PixelBuffer_CreateFromPNG(&pb, "assets/cp437_18x18.png");
-    TextureAtlas fontAtlas;
-    TextureAtlas_CreateFromSheet(&fontAtlas, 18, 18, &pb);
-    PixelBuffer_Destroy(&pb);
-
-
-    PixelBuffer_CreateFromPNG(&pb, "assets/font9x14.png");
-    TextureAtlas logFontAtlas;
-    TextureAtlas_CreateFromSheet(&logFontAtlas, 9, 14, &pb);
-    PixelBuffer_Destroy(&pb);
-
-
-    Terminal term;
-    Term_Create(&term, 80, 60, 18, 18, 0, &fontAtlas);
-
-    Terminal logTerm;
-    Term_Create(&logTerm, 53, 20, 9, 14, 0, &logFontAtlas);
-
-    //Term_Print(&term, 0, 0, "Hello World");
-
     FPS_UI_Init(&font);
+
+
+    RPG_Init();
+
+    GameState_Init();
+    CombatState_Register();
+    IntroState_Register();
+    GameState_CreateStates();
+    // Push Initial Game State
+    GameState_Push(GAME_STATE_INTRO);
 
     while(!ShouldQuit)
     {
@@ -400,43 +314,13 @@ int main()
             secondsElapsedForFrame = GetTime() - oldTime;
         }
 
-        Encounter_Update(encounter, (u64) (secondsElapsedForFrame * 1000.0));
-        //SDL_Log("secondsElapsedForWork %.2f secondsElapsedForFrame %.2f FPS %.2f", secondsElapsedForWork, secondsElapsedForFrame, 1.0/secondsElapsedForFrame);
-
-        // render debug info
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
         Render_ClearCmdBuffer(&renderBuffer);
         Render_PushClearCmd(&renderBuffer, (vec4) {0, 0, 0, 1.0f});
 
-        //Render_PushQuadsCmd(&renderBuffer, &quad1, 1);
-        /*
-        Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
-        Render_PushQuadsCmd(&renderBuffer, &quad3, 1);
 
-        */
-
-        //Term_SetBGColor(&term, TERM_COL_RED);
-        Encounter_Render(encounter, &term);
-        //Term_PrintRexImage(&term, &rexImage, 0, 0);
-
-
-        //Term_Print(&term, 0, 0, buf);
-        Term_Render(&term, 0.0f, 0.0f, &renderBuffer);
-
-        CombatLog_Render(&encounter->combatLog, &logTerm);
-        Term_Render(&logTerm, 1440.0f, 800.0f, &renderBuffer);
+        GameState_Frame(&renderBuffer, secondsElapsedForFrame);
 
         FPS_UI_Update(&renderBuffer, secondsElapsedForFrame);
-
-        //Render_PushQuadsCmd(&renderBuffer, &quad2, 1);
-
-        //Render_PushTexturedQuadsCmd(&renderBuffer, fontAtlas.textureId, &texquad1, 1);
-
-        //Render_PushText(&renderBuffer, &font, 5, 25, COLOR_WHITE, "SYSTEM READY. Doctor Yeti, tag en slapper!###¤");
-
-        //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
-        //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
 
 
         OGL_RenderCmdBuffer(&renderBuffer);
@@ -444,27 +328,14 @@ int main()
         SDL_GL_SwapWindow(Window);
     }
 
+    GameState_DestroyStates();
+    GameState_Shutdown();
+
     FPS_UI_Shutdown();
-
-    Encounter_Destroy(encounter);
-
-    RPG_DestroyEntity(entity);
-    RPG_DestroyEntity(monster);
-    RPG_DestroyEntity(monster2);
-
-    RPG_ShutdownContext(&rpgContext);
-
-    Rex_Destroy(&rexImage);
-    TextureAtlas_Destroy(&fontAtlas);
-    Term_Destroy(&term);
-
-    TextureAtlas_Destroy(&logFontAtlas);
-    Term_Destroy(&logTerm);
 
     Font_Destroy(&font);
 
 
-    TextureAtlas_Destroy(&atlas);
     Render_DestroyCmdBuffer(&renderBuffer);
 
     Input_Shutdown();

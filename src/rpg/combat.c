@@ -471,7 +471,7 @@ void Encounter_Update(Encounter *enc, u64 time_ms)
         RPG_LOG("Combat event stack is empty, ending combat\n");
         enc->state = ES_STOPPED;
     } else {
-        //RPG_LOG("Combat event stack top: %d\n", enc->eventStackTop);
+        RPG_LOG("Combat event stack top: %d\n", enc->eventStackTop);
         CombatEvent event;
         PopCombatEvent(enc, &event);
         //RPG_LOG("Took combat event off stack, running action\n");
