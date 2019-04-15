@@ -118,6 +118,9 @@ INTERNAL void onStop() {
 INTERNAL void onFrame(RenderCmdBuffer* renderBuffer, double frameDelta) {
     //SDL_Log("CombatState onFrame");
     //Term_SetBGColor(&term, TERM_COL_RED);
+    if(encounter->state == ES_INPUT_WAIT) {
+
+    }
     Encounter_Update(encounter, (u64) (frameDelta * 1000.0));
 
     Encounter_Render(encounter, &term);

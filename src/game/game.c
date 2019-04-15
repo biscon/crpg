@@ -102,11 +102,12 @@ void Game_Init()
     Input_RegisterAction(&inputContext, INPUT_ACTION_UP);
 
     GameState_Init();
-    CombatState_Register();
     IntroState_Register();
+    CombatState_Register();
     GameState_CreateStates();
     // Push Initial Game State
     GameState_Push(GAME_STATE_INTRO);
+    GameState_Push(GAME_STATE_COMBAT);
 }
 
 void Game_Shutdown()

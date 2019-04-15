@@ -162,11 +162,12 @@ INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
         RPG_LOG("\tAttack: %s\n", ((Attack*) cur->data)->name);
         cur = cur->next;
     }
-    /*
+
     if(c->team == ENC_PLAYER_TEAM) {
         enc->state = ES_INPUT_WAIT;
         RPG_LOG("Entity %s waiting on input...\n", c->entity->name);
-    } else { */
+        return 0;
+    } else {
         AIInterface *ai = c->aiInterface;
         assert(ai != NULL);
         ai->onDecideAction(enc, c);
@@ -181,7 +182,7 @@ INTERNAL u32 Action_BeginTurn(Encounter *enc, CombatEvent* event) {
             PushCombatEvent(enc, &next_event);
         }
          */
-    //}
+    }
     return 500;
 }
 
