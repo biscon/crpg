@@ -115,7 +115,7 @@ set(GAME_SOURCE_FILES
         src/rpg/combat_map.h
         src/input/input.c
         src/input/input.h
-        src/input/mapped_input.h src/game/game.c src/game/game.h src/game/game_state.c src/game/game_state.h src/game/combat_state.c src/game/combat_state.h src/game/intro_state.c src/game/intro_state.h)
+        src/input/mapped_input.h src/game/game.c src/game/game.h src/game/game_state.c src/game/game_state.h src/game/combat_state.c src/game/combat_state.h src/game/intro_state.c src/game/intro_state.h src/game/menu.c src/game/menu.h)
 
 add_executable(game ${GAME_SOURCE_FILES} ${UTIL_SOURCE_FILES} ${CGLM_SOURCE_FILES})
 
