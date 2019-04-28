@@ -6,6 +6,7 @@
 #include "intro_state.h"
 
 #include "game_state.h"
+#include "menu.h"
 
 INTERNAL TextureAtlas atlas;
 
@@ -25,10 +26,21 @@ INTERNAL Quad quad2 = {.color = {1.0f, 0.0f, 1.0f, 1.0f},
 INTERNAL Quad quad3 = {.color = {0.0f, 1.0f, 0.0f, 1.0f},
           .left = 400, .top = 500, .right = 700, .bottom = 600};
 
+
+struct IntroMenu {
+    Menu        menu;
+    Font        font;
+    MenuItem    item1;
+    MenuItem    item2;
+};
+
+INTERNAL struct IntroMenu introMenu = {
+    .item1 = { .id = 1, .text = "fisse" },
+    .item2 = { .id = 2, .text = "hornmusik" }
+};
+
 INTERNAL void onCreate() {
     SDL_Log("IntroState onCreate");
-
-
 
     TextureAtlas_Create(&atlas, 4096, 4096, PBF_RGBA);
     u32 tex1 = TextureAtlas_AddImageFromPNG(&atlas, "assets/sample.png");
@@ -37,10 +49,21 @@ INTERNAL void onCreate() {
 
     atlasquad1.atlasId = tex1;
     atlasquad2.atlasId = tex2;
+
+    Font_Create(&introMenu.font, "assets/PressStart2P.ttf", 24);
+    Menu_Create(&introMenu.menu, MENU_TYPE_VERT, &introMenu.font);
+    Menu_CreateItem(&introMenu.item1);
+    Menu_AddItem(&introMenu.menu, &introMenu.item1);
+    Menu_CreateItem(&introMenu.item2);
+    Menu_AddItem(&introMenu.menu, &introMenu.item2);
 }
 
 INTERNAL void onDestroy() {
     SDL_Log("IntroState onDestroy");
+
+    Menu_Destroy(&introMenu.menu);
+    Font_Destroy(&introMenu.font);
+
     TextureAtlas_Destroy(&atlas);
 }
 
@@ -55,7 +78,7 @@ INTERNAL void onStop() {
 INTERNAL void onFrame(RenderCmdBuffer* renderBuffer, double frameDelta) {
     //SDL_Log("IntroState onFrame");
 
-    Render_PushQuadsCmd(renderBuffer, &quad1, 1);
+    //Render_PushQuadsCmd(renderBuffer, &quad1, 1);
 
     Render_PushAtlasQuadsCmd(renderBuffer, &atlas, &atlasquad1, 1);
     Render_PushAtlasQuadsCmd(renderBuffer, &atlas, &atlasquad2, 1);
@@ -69,6 +92,7 @@ INTERNAL void onFrame(RenderCmdBuffer* renderBuffer, double frameDelta) {
 
     //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad1, 1);
     //Render_PushAtlasQuadsCmd(&renderBuffer, &atlas, &atlasquad2, 1);
+    Menu_Render(&introMenu.menu, renderBuffer, frameDelta);
 }
 
 void IntroState_Register() {

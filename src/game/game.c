@@ -107,7 +107,7 @@ void Game_Init()
     GameState_CreateStates();
     // Push Initial Game State
     GameState_Push(GAME_STATE_INTRO);
-    GameState_Push(GAME_STATE_COMBAT);
+    //GameState_Push(GAME_STATE_COMBAT);
 }
 
 void Game_Shutdown()
